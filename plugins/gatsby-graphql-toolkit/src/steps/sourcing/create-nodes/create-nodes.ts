@@ -4,21 +4,26 @@ import {
   IRemoteNode,
   IGatsbyNodeDefinition,
 } from "../../../types"
-import {transformRemoteNode} from "./transform-remote-node";
-import {NodeInput} from "gatsby";
+import { transformRemoteNode } from "./transform-remote-node"
+import { NodeInput } from "gatsby"
 
 export async function createNodes(
   context: ISourcingContext,
   result: IFetchResult
 ) {
-    // FIXME:
-    const def = context.gatsbyNodeDefs.get(result.remoteTypeName)
-    if (!def) {
-      throw new Error(`${result.remoteTypeName} is not a Gatsby node type`)
+  const def = context.gatsbyNodeDefs.get(result.remoteTypeName)
+  if (!def) {
+    throw new Error(`${result.remoteTypeName} is not a Gatsby node type`)
+  }
+  const typeNameField = context.gatsbyFieldAliases["__typename"]
+  for (const node of result.allNodes) {
+    if (!node || node[typeNameField] !== def.remoteTypeName) {
+      // Possible when fetching on complex interface or union type fields
+      // or when some node is `null`
+      continue
     }
-    for (const node of result.allNodes) {
-      await createNode(context, def, node)
-    }
+    await createNode(context, def, node)
+  }
 }
 
 export async function createNode(
