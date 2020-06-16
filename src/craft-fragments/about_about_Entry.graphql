@@ -1,0 +1,127 @@
+fragment about_about_Entry on about_about_Entry {
+  remoteNodeId: id
+  uid
+  title
+  slug
+  uri
+  enabled
+  archived
+  siteId
+  searchScore
+  trashed
+  status
+  dateCreated
+  dateUpdated
+  lft
+  rgt
+  level
+  root
+  structureId
+  authorId
+  author {
+    friendlyName
+    ... on User {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  sectionId
+  sectionHandle
+  typeId
+  typeHandle
+  postDate
+  expiryDate
+  remoteChildren: children {
+    ... on EntryInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  remoteParent: parent {
+    ... on EntryInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  url
+  leadText
+  bios {
+    ... on bios_featuredBio_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      headshot {
+        ... on AssetInterface {
+          remoteTypeName: __typename
+          remoteNodeId: id
+        }
+      }
+      lead
+      text
+      profileLinks {
+        ... on profileLinks_TableRow {
+          col1
+          label
+          col2
+          url
+        }
+      }
+    }
+    ... on bios_secondaryBio_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      headshot {
+        ... on AssetInterface {
+          remoteTypeName: __typename
+          remoteNodeId: id
+        }
+      }
+      lead
+      text
+    }
+  }
+  metaDescription
+  metaImage {
+    ... on AssetInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  metaKeywords {
+    ... on TagInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+}

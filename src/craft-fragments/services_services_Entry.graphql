@@ -1,0 +1,146 @@
+fragment services_services_Entry on services_services_Entry {
+  remoteNodeId: id
+  uid
+  title
+  slug
+  uri
+  enabled
+  archived
+  siteId
+  searchScore
+  trashed
+  status
+  dateCreated
+  dateUpdated
+  lft
+  rgt
+  level
+  root
+  structureId
+  authorId
+  author {
+    ... on UserInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  sectionId
+  sectionHandle
+  typeId
+  typeHandle
+  postDate
+  expiryDate
+  remoteChildren: children {
+    ... on EntryInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  remoteParent: parent {
+    ... on EntryInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  url
+  primaryServicesHeading
+  primaryServicesSubheading
+  primaryServices {
+    ... on primaryServices_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      sortOrder
+      serviceName
+      serviceDescription
+      serviceIcon {
+        ... on AssetInterface {
+          remoteTypeName: __typename
+          remoteNodeId: id
+        }
+      }
+    }
+  }
+  secondaryServicesHeading
+  secondaryServicesSubheading
+  secondaryServices {
+    ... on secondaryServices_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      sortOrder
+      serviceName
+      serviceDescription
+      serviceIcon {
+        ... on AssetInterface {
+          remoteTypeName: __typename
+          remoteNodeId: id
+        }
+      }
+    }
+  }
+  nonServicesHeading
+  nonServicesSubheading
+  nonServices {
+    ... on nonServices_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      sortOrder
+      serviceName
+      serviceDescription
+    }
+  }
+  metaDescription
+  metaImage {
+    ... on AssetInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  metaKeywords {
+    ... on TagInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+}

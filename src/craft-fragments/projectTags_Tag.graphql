@@ -1,0 +1,18 @@
+fragment projectTags_Tag on projectTags_Tag {
+  remoteNodeId: id
+  uid
+  title
+  slug
+  uri
+  enabled
+  archived
+  siteId
+  searchScore
+  trashed
+  status
+  dateCreated
+  dateUpdated
+  groupId
+  groupHandle
+  prettyName
+}

@@ -1,0 +1,24 @@
+fragment defaults_GlobalSet on defaults_GlobalSet {
+  remoteNodeId: id
+  uid
+  title
+  slug
+  uri
+  enabled
+  archived
+  siteId
+  searchScore
+  trashed
+  status
+  dateCreated
+  dateUpdated
+  name
+  handle
+  metaImage {
+    ... on AssetInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  metaDescription
+}

@@ -1,0 +1,32 @@
+fragment User on User {
+  remoteNodeId: id
+  uid
+  title
+  slug
+  uri
+  enabled
+  archived
+  siteId
+  searchScore
+  trashed
+  status
+  dateCreated
+  dateUpdated
+  photo {
+    ... on AssetInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  friendlyName
+  fullName
+  name
+  preferences
+  preferredLanguage
+  username
+  firstName
+  lastName
+  email
+  phoneNumber
+  blogBio
+}

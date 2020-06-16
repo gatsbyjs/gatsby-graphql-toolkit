@@ -1,0 +1,167 @@
+fragment plugins_plugins_Entry on plugins_plugins_Entry {
+  remoteNodeId: id
+  uid
+  title
+  slug
+  uri
+  enabled
+  archived
+  siteId
+  searchScore
+  trashed
+  status
+  dateCreated
+  dateUpdated
+  lft
+  rgt
+  level
+  root
+  structureId
+  authorId
+  author {
+    ... on UserInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  sectionId
+  sectionHandle
+  typeId
+  typeHandle
+  postDate
+  expiryDate
+  remoteChildren: children {
+    ... on EntryInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  remoteParent: parent {
+    ... on EntryInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  url
+  shortDescription
+  icon {
+    ... on AssetInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  composedIcon {
+    ... on AssetInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  overviewBlocks {
+    ... on overviewBlocks_lead_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      text
+    }
+    ... on overviewBlocks_images_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      images {
+        ... on AssetInterface {
+          remoteTypeName: __typename
+          remoteNodeId: id
+        }
+      }
+    }
+    ... on overviewBlocks_text_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      body
+    }
+  }
+  features {
+    ... on features_feature_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      heading
+      description
+      image {
+        ... on AssetInterface {
+          remoteTypeName: __typename
+          remoteNodeId: id
+        }
+      }
+    }
+  }
+  pluginType
+  pluginKind
+  pluginPrice
+  gitHubUrl
+  changelogUrl
+  documentationUrl
+  supportUrl
+  pluginStoreUrl
+}

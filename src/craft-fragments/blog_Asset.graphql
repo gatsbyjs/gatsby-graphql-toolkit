@@ -1,0 +1,34 @@
+fragment blog_Asset on blog_Asset {
+  remoteNodeId: id
+  uid
+  title
+  slug
+  uri
+  enabled
+  archived
+  siteId
+  searchScore
+  trashed
+  status
+  dateCreated
+  dateUpdated
+  volumeId
+  folderId
+  filename
+  extension
+  hasFocalPoint
+  focalPoint
+  kind
+  size
+  height
+  width
+  img
+  url
+  mimeType
+  path
+  dateModified
+  caption
+  credit
+  altText
+  dominantColor
+}

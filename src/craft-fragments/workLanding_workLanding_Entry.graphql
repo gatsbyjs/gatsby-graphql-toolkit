@@ -1,0 +1,282 @@
+fragment workLanding_workLanding_Entry on workLanding_workLanding_Entry {
+  remoteNodeId: id
+  uid
+  title
+  slug
+  uri
+  enabled
+  archived
+  siteId
+  searchScore
+  trashed
+  status
+  dateCreated
+  dateUpdated
+  lft
+  rgt
+  level
+  root
+  structureId
+  authorId
+  author {
+    ... on UserInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  sectionId
+  sectionHandle
+  typeId
+  typeHandle
+  postDate
+  expiryDate
+  remoteChildren: children {
+    ... on EntryInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  remoteParent: parent {
+    ... on EntryInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  url
+  pageBlocks {
+    ... on pageBlocks_hugeIntro_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      text
+    }
+    ... on pageBlocks_serviceSummary_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      headline
+      body
+      benefits {
+        ... on benefits_BlockType {
+          remoteNodeId: id
+          uid
+          title
+          slug
+          uri
+          enabled
+          archived
+          siteId
+          searchScore
+          trashed
+          status
+          dateCreated
+          dateUpdated
+          fieldId
+          ownerId
+          typeId
+          sortOrder
+          icon {
+            ... on AssetInterface {
+              remoteTypeName: __typename
+              remoteNodeId: id
+            }
+          }
+          text
+        }
+      }
+      relatedWork {
+        ... on relatedWork_BlockType {
+          remoteNodeId: id
+          uid
+          title
+          slug
+          uri
+          enabled
+          archived
+          siteId
+          searchScore
+          trashed
+          status
+          dateCreated
+          dateUpdated
+          fieldId
+          ownerId
+          typeId
+          sortOrder
+          work {
+            ... on EntryInterface {
+              remoteTypeName: __typename
+              remoteNodeId: id
+            }
+          }
+          emphasis
+        }
+      }
+    }
+    ... on pageBlocks_statementCta_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      headline
+      statements {
+        ... on statements_TableRow {
+          col1
+          text
+        }
+      }
+      links {
+        ... on links_BlockType {
+          remoteNodeId: id
+          uid
+          title
+          slug
+          uri
+          enabled
+          archived
+          siteId
+          searchScore
+          trashed
+          status
+          dateCreated
+          dateUpdated
+          fieldId
+          ownerId
+          typeId
+          sortOrder
+          linkUrl
+          linkText
+          style
+        }
+      }
+    }
+    ... on pageBlocks_quote_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      quote
+      attribution
+      role
+    }
+    ... on pageBlocks_cta_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      headline
+      text
+      links {
+        ... on links_BlockType {
+          remoteNodeId: id
+          uid
+          title
+          slug
+          uri
+          enabled
+          archived
+          siteId
+          searchScore
+          trashed
+          status
+          dateCreated
+          dateUpdated
+          fieldId
+          ownerId
+          typeId
+          sortOrder
+          linkUrl
+          linkText
+          style
+        }
+      }
+      color
+    }
+  }
+  metaDescription
+  metaImage {
+    ... on AssetInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  metaKeywords {
+    ... on TagInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  titleOverride
+}

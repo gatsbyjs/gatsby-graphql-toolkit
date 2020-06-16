@@ -1,0 +1,245 @@
+fragment colophon_colophon_Entry on colophon_colophon_Entry {
+  remoteNodeId: id
+  uid
+  title
+  slug
+  uri
+  enabled
+  archived
+  siteId
+  searchScore
+  trashed
+  status
+  dateCreated
+  dateUpdated
+  lft
+  rgt
+  level
+  root
+  structureId
+  authorId
+  author {
+    ... on UserInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  sectionId
+  sectionHandle
+  typeId
+  typeHandle
+  postDate
+  expiryDate
+  remoteChildren: children {
+    ... on EntryInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  remoteParent: parent {
+    ... on EntryInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  url
+  postBlocks {
+    ... on postBlocks_aside_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      text
+    }
+    ... on postBlocks_images_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      images {
+        ... on AssetInterface {
+          remoteTypeName: __typename
+          remoteNodeId: id
+        }
+      }
+      width
+    }
+    ... on postBlocks_table_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      table {
+        ... on table_TableMakerField {
+          rows
+          columns {
+            ... on table_TableMakerField_column {
+              heading
+              width
+              align
+            }
+          }
+          table
+        }
+      }
+      maxWidth
+    }
+    ... on postBlocks_chart_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      chartType
+      chartTitle
+      data {
+        ... on data_TableMakerField {
+          rows
+          columns {
+            ... on data_TableMakerField_column {
+              heading
+              width
+              align
+            }
+          }
+          table
+        }
+      }
+      caption
+    }
+    ... on postBlocks_text_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      body
+    }
+    ... on postBlocks_code_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      snippet
+      language
+      caption
+    }
+    ... on postBlocks_anchoredHeading_BlockType {
+      remoteNodeId: id
+      uid
+      title
+      slug
+      uri
+      enabled
+      archived
+      siteId
+      searchScore
+      trashed
+      status
+      dateCreated
+      dateUpdated
+      fieldId
+      ownerId
+      typeId
+      typeHandle
+      sortOrder
+      heading
+      headingLevel
+    }
+  }
+  metaDescription
+  metaImage {
+    ... on AssetInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+  metaKeywords {
+    ... on TagInterface {
+      remoteTypeName: __typename
+      remoteNodeId: id
+    }
+  }
+}

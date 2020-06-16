@@ -1,0 +1,39 @@
+fragment profile_GlobalSet on profile_GlobalSet {
+  remoteNodeId: id
+  uid
+  title
+  slug
+  uri
+  enabled
+  archived
+  siteId
+  searchScore
+  trashed
+  status
+  dateCreated
+  dateUpdated
+  name
+  handle
+  companyName
+  email
+  phoneNumber
+  sameAs {
+    ... on sameAs_TableRow {
+      col1
+      label
+      col2
+      url
+    }
+  }
+  foundingDate
+  currenciesAccepted
+  priceRange
+  region
+  placename
+  latitude
+  longitude
+  street
+  city
+  locality
+  postalCode
+}
