@@ -19,43 +19,35 @@ import { collectPaginateFieldOperationNames } from "./operation-utils"
 export async function paginatedNodeFetch(
   context: ISourcingContext,
   def: IGatsbyNodeDefinition,
-  operationName: string,
-  variables: object = {}
+  operationName: string
 ): Promise<IRemoteNode[]> {
-  const { data, pager, fieldPath } = await paginate(
-    context,
-    def,
-    operationName,
-    variables
-  )
+  const { data, pager, fieldPath } = await paginate(context, def, operationName)
   const partialNodes = pager.getItems(getFirstValueByPath(data, fieldPath))
 
   const fullNodes: IRemoteNode[] = []
   for (const node of partialNodes) {
     // TODO: batch those queries using batching dataloader from gatsby-source-graphql
-    fullNodes.push(
-      await addPaginatedFields(context, def, node as IRemoteNode, variables)
-    )
+    fullNodes.push(await addPaginatedFields(context, def, node as IRemoteNode))
   }
   return fullNodes
 }
 
-async function addPaginatedFields(
+export async function addPaginatedFields(
   context: ISourcingContext,
   def: IGatsbyNodeDefinition,
-  node: IRemoteNode,
-  variables: {}
+  node: IRemoteNode
 ): Promise<IRemoteNode> {
   const paginateFieldsOperations = collectPaginateFieldOperationNames(
     def.document
   )
+  const remoteId = context.idTransform.remoteNodeToId(node, def)
   for (const paginateFieldOperation of paginateFieldsOperations) {
-    // TODO: id argument mapping
-    // const operationVariables = def.variables(paginateFieldOperation, def)
-    const { data } = await paginate(context, def, paginateFieldOperation, {
-      ...variables,
-      id: node.remoteNodeId,
-    })
+    const { data } = await paginate(
+      context,
+      def,
+      paginateFieldOperation,
+      def.nodeQueryVariables(remoteId)
+    )
     const fieldPath = findNodeFieldPath(def.document, paginateFieldOperation)
     const paginatedFieldData = getFirstValueByPath(data, fieldPath)
     Object.assign(node, paginatedFieldData)
@@ -111,6 +103,7 @@ async function paginate(
       operationName,
       query,
       variables: { ...variables, ...state.variables },
+      document,
     })
     if (!result.data) {
       const message = result.errors?.length

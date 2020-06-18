@@ -12,7 +12,9 @@ import { collectListOperationNames } from "./operation-utils"
  *
  * @returns {Array}
  */
-export async function fetchAllNodes(context: ISourcingContext) {
+export async function fetchAllNodes(
+  context: ISourcingContext
+): Promise<IFetchResult[]> {
   const { fetchingActivity, gatsbyNodeDefs } = context
   fetchingActivity.start()
   try {

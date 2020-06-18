@@ -18,15 +18,11 @@ export interface IGatsbyFieldAliases {
 }
 export type FragmentMap = Map<RemoteTypeName, FragmentDefinitionNode>
 
-export interface QueryVariableProviderArgs {
-  queryKind: "ALL" | "ONE" | "PAGINATE_FIELD"
-  document: DocumentNode
+export interface IExecuteArgs {
+  query: string
   operationName: string
-  partialVariables: { [name: string]: unknown }
-}
-
-export interface QueryVariableProvider {
-  (args: QueryVariableProviderArgs): { [name: string]: unknown }
+  variables: object
+  document: DocumentNode
 }
 
 export interface ISourcingConfig {
@@ -34,11 +30,7 @@ export interface ISourcingConfig {
   schema: GraphQLSchema
   gatsbyNodeDefs: Map<RemoteTypeName, IGatsbyNodeDefinition>
   gatsbyTypePrefix: string
-  execute: (args: {
-    query: string
-    operationName: string
-    variables?: object
-  }) => Promise<ExecutionResult>
+  execute: (args: IExecuteArgs) => Promise<ExecutionResult>
 
   verbose?: boolean
   gatsbyFieldAliases?: IGatsbyFieldAliases
@@ -52,6 +44,7 @@ export interface IGatsbyNodeConfig {
   remoteTypeName: RemoteTypeName
   remoteIdFields: string[]
   queries: GraphQLSource
+  nodeQueryVariables?: (id: IRemoteId) => object
 }
 
 export interface IRemoteNode {
@@ -98,6 +91,7 @@ export interface IGatsbyNodeDefinition {
   remoteTypeName: RemoteTypeName
   remoteIdFields: string[]
   document: DocumentNode
+  nodeQueryVariables: (id: IRemoteId) => object
 }
 
 export interface ISourcingContext extends ISourcingConfig {

@@ -8,6 +8,7 @@ import {
   RemoteTypeName,
   GraphQLSource,
   IGatsbyFieldAliases,
+  IRemoteId,
 } from "../../types"
 import * as GraphQLAST from "../../utils/ast-nodes"
 
@@ -39,7 +40,6 @@ export function buildNodeDefinitions({
 
   gatsbyNodeTypes.forEach(config => {
     const def: IGatsbyNodeDefinition = {
-      ...config,
       document: compileGatsbyNodeDocument({
         schema,
         gatsbyNodeType: config,
@@ -47,6 +47,8 @@ export function buildNodeDefinitions({
         queries: parse(config.queries),
         fragments: nodeFragmentMap.get(config.remoteTypeName)!, // FIXME
       }),
+      nodeQueryVariables: (id: IRemoteId) => ({ ...id }),
+      ...config,
     }
     definitions.set(config.remoteTypeName, def)
   })
