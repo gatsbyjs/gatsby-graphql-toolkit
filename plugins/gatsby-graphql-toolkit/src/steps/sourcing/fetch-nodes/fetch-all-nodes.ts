@@ -16,13 +16,15 @@ import { runConcurrently } from "../../../utils/run-concurrently"
 export async function* fetchAllNodes(
   context: ISourcingContext
 ): AsyncGenerator<IFetchResult> {
-  const { fetchingActivity, gatsbyNodeDefs } = context
+  const { fetchingActivity, gatsbyNodeDefs, queryConcurrency } = context
   fetchingActivity.start()
   try {
     const queryThunks = [...gatsbyNodeDefs.values()].map(def => () =>
       fetchNodesByType(context, def)
     )
-    return runConcurrently(queryThunks, context.queryConcurrency)
+    for await (const result of runConcurrently(queryThunks, queryConcurrency)) {
+      yield result
+    }
   } finally {
     fetchingActivity.end()
   }
