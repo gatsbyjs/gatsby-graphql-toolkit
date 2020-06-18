@@ -1,6 +1,6 @@
 import {IGatsbyNodeDefinition, IRemoteNode, ISourcingContext} from "../../../types";
 
-export async function transformRemoteNode(
+export async function processRemoteNode(
   // @ts-ignore
   context: ISourcingContext,
   // @ts-ignore

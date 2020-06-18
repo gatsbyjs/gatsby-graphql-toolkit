@@ -1,4 +1,4 @@
-import { ActivityTracker, NodePluginArgs } from "gatsby"
+import { ActivityTracker, Node, NodePluginArgs } from "gatsby"
 import { ComposeFieldConfig } from "graphql-compose"
 import {
   DocumentNode,
@@ -58,6 +58,24 @@ export interface IRemoteId {
 export interface IFetchResult {
   remoteTypeName: string
   allNodes: IRemoteNode[]
+}
+
+export interface INodeUpdateEvent {
+  eventName: "UPDATE"
+  remoteTypeName: RemoteTypeName
+  remoteId: IRemoteId
+}
+
+export interface INodeDeleteEvent {
+  eventName: "DELETE"
+  remoteTypeName: RemoteTypeName
+  remoteId: IRemoteId
+}
+
+export type NodeEvent = INodeUpdateEvent | INodeDeleteEvent
+
+export interface ISourceChanges {
+  nodeEvents: NodeEvent[]
 }
 
 export interface INodeIdTransform {

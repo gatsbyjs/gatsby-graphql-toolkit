@@ -4,7 +4,7 @@ import {
   IRemoteNode,
   IGatsbyNodeDefinition,
 } from "../../../types"
-import { transformRemoteNode } from "./transform-remote-node"
+import { processRemoteNode } from "./process-remote-node"
 import { NodeInput } from "gatsby"
 
 export async function createNodes(
@@ -41,7 +41,7 @@ export async function createNode(
   //   (Technically this should be caught in fragments validation before running a query
   //   but we should probably double-check for safety)
 
-  const nodeData = await transformRemoteNode(context, def, remoteNode)
+  const nodeData = await processRemoteNode(context, def, remoteNode)
 
   const node: NodeInput = {
     ...nodeData,

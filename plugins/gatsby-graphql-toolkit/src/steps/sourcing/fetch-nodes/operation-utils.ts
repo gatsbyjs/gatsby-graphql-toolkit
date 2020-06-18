@@ -12,7 +12,7 @@ export function collectPaginateFieldOperationNames(document: DocumentNode): stri
   return collectOperationNames(document, /^PAGINATE/)
 }
 
-function collectOperationNames(document: DocumentNode, regex: RegExp) {
+function collectOperationNames(document: DocumentNode, regex: RegExp): string[] {
   return document.definitions
     .filter(
       (def): def is OperationDefinitionNode =>

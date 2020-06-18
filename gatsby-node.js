@@ -8,7 +8,8 @@ const fetch = require("node-fetch")
 const path = require("path")
 const { parse, print, Source, buildASTSchema } = require("graphql")
 const {
-  sourceNodes,
+  sourceAllNodes,
+  sourceNodeChanges,
 } = require("./plugins/gatsby-graphql-toolkit/dist/steps/sourcing/source-nodes")
 const {
   createSchemaCustomization,
@@ -62,7 +63,7 @@ async function getGatsbyNodeTypes() {
   return (gatsbyNodeTypes = [
     ...fromIface(`EntryInterface`, type => `
       query ALL_${type} { entries(type: "${type.split(`_`)[0]}", limit: $limit, offset: $offset) }
-      query ONE_${type} { entry(type: "${type.split(`_`)[0]}", id: $id, limit: $limit, offset: $offset) }
+      query ONE_${type} { entry(type: "${type.split(`_`)[0]}", id: $id) }
     `),
     ...fromIface(`AssetInterface`, type => `
       query ALL_${type} { assets(limit: $limit, offset: $offset) }
@@ -148,22 +149,46 @@ async function getSourcingConfig(gatsbyApi, pluginOptions) {
 exports.onPreBootstrap = async (gatsbyApi, pluginOptions) => {
   await writeDefaultFragments()
 }
-
+/*
 exports.createSchemaCustomization = async (gatsbyApi, pluginOptions) => {
   const config = await getSourcingConfig(gatsbyApi, pluginOptions)
   await createSchemaCustomization(config)
 }
-
+*/
 exports.sourceNodes = async (gatsbyApi, pluginOptions) => {
+  const { cache } = gatsbyApi
   const config = await getSourcingConfig(gatsbyApi, pluginOptions)
+  const cached = await cache.get(`CRAFT_SOURCED`) || false
 
-  // fetch delta IDs
-  const ids = [
-    { remoteNodeType: `post`, remoteNodeId: 5 },
-    { remoteNodeType: `post`, remoteNodeId: 6 },
-    { remoteNodeType: `post`, remoteNodeId: 7 },
-    { remoteNodeType: `post`, remoteNodeId: 8 },
-  ]
+  if (cached) {
+    // Applying changes since the last sourcing
+    const nodeEvents = [
+      {
+        eventName: "DELETE",
+        remoteTypeName: "blog_blog_Entry",
+        remoteId: { __typename: "blog_blog_Entry", id: "422" },
+      },
+      {
+        eventName: "UPDATE",
+        remoteTypeName: "blog_blog_Entry",
+        remoteId: { __typename: "blog_blog_Entry", id: "421" },
+      },
+      {
+        eventName: "UPDATE",
+        remoteTypeName: "blog_blog_Entry",
+        remoteId: { __typename: "blog_blog_Entry", id: "18267" },
+      },
+      {
+        eventName: "UPDATE",
+        remoteTypeName: "blog_blog_Entry",
+        remoteId: { __typename: "blog_blog_Entry", id: "11807" },
+      },
+    ]
+    console.log(`Sourcing delta!`)
+    await sourceNodeChanges(config, { nodeEvents })
+    return
+  }
 
-  await sourceNodes(config)
+  await sourceAllNodes(config)
+  await cache.set(`CRAFT_SOURCED`, true)
 }
