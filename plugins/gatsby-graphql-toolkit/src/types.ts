@@ -32,6 +32,7 @@ export interface ISourcingConfig {
   gatsbyTypePrefix: string
   execute: (args: IExecuteArgs) => Promise<ExecutionResult>
 
+  queryConcurrency?: number
   verbose?: boolean
   gatsbyFieldAliases?: IGatsbyFieldAliases
   idTransform?: INodeIdTransform
@@ -119,6 +120,7 @@ export interface ISourcingContext extends ISourcingConfig {
   formatLogMessage: (string) => string
   fetchingActivity: ActivityTracker
   creatingActivity: ActivityTracker
+  queryConcurrency: number
 }
 
 export interface ISchemaCustomizationContext extends ISourcingConfig {

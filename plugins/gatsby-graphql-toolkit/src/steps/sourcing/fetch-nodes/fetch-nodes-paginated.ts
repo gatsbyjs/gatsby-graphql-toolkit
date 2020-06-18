@@ -26,6 +26,7 @@ export async function paginatedNodeFetch(
 
   const fullNodes: IRemoteNode[] = []
   for (const node of partialNodes) {
+    // TODO: paginate fields concurrently
     // TODO: batch those queries using batching dataloader from gatsby-source-graphql
     fullNodes.push(await addPaginatedFields(context, def, node as IRemoteNode))
   }

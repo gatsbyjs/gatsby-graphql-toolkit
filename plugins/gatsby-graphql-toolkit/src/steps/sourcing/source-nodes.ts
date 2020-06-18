@@ -18,9 +18,8 @@ import { defaultGatsbyFieldAliases } from "../../config/default-gatsby-field-ali
 export async function sourceAllNodes(config: ISourcingConfig) {
   // Context instance passed to every nested call
   const context = createSourcingContext(config)
-  const results = await fetchAllNodes(context)
 
-  for (const result of results) {
+  for await (const result of fetchAllNodes(context)) {
     await createNodes(context, result)
   }
 }
@@ -42,10 +41,9 @@ export async function sourceNodeChanges(
   })
 
   const context = createSourcingContext(config)
-  const results = await fetchByIds(context, updates)
   await touchNodes(context)
 
-  for (const result of results) {
+  for await (const result of fetchByIds(context, updates)) {
     await createNodes(context, result)
   }
   await deleteNodes(context, deletes)
@@ -60,12 +58,14 @@ function createSourcingContext(config: ISourcingConfig): ISourcingContext {
     verbose,
     idTransform = createNodeIdTransform(gatsbyFieldAliases),
     typeNameTransform = createTypeNameTransform(config.gatsbyTypePrefix),
+    queryConcurrency = Number(process.env.GATSBY_CONCURRENT_DOWNLOAD) || 50,
   } = config
   const { reporter } = gatsbyApi
   const format = string => formatLogMessage(string, { verbose })
 
   return {
     ...config,
+    queryConcurrency,
     gatsbyFieldAliases,
     idTransform,
     typeNameTransform,

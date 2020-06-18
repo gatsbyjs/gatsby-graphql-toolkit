@@ -10,11 +10,12 @@ import {
 import { collectNodeOperationNames } from "./operation-utils"
 import { findNodeFieldPath, getFirstValueByPath } from "./field-path-utils"
 import { addPaginatedFields } from "./fetch-nodes-paginated"
+import { runConcurrently } from "../../../utils/run-concurrently"
 
-export async function fetchByIds(
+export async function* fetchByIds(
   context: ISourcingContext,
   nodes: { remoteTypeName: string; remoteId: IRemoteId }[]
-): Promise<IFetchResult[]> {
+): AsyncGenerator<IFetchResult> {
   const idsByType = new Map<RemoteTypeName, IRemoteId[]>()
 
   for (const nodeInfo of nodes) {
@@ -23,7 +24,6 @@ export async function fetchByIds(
     idsByType.set(nodeInfo.remoteTypeName, ids)
   }
 
-  const result: IFetchResult[] = []
   for (const [remoteTypeName, ids] of idsByType) {
     const def = context.gatsbyNodeDefs.get(remoteTypeName)
     if (!def) {
@@ -31,9 +31,9 @@ export async function fetchByIds(
         `Could not get Gatsby node definition for type ${remoteTypeName}`
       )
     }
-    result.push(await fetchNodesByType(context, def, ids))
+    const result = await fetchNodesByType(context, def, ids)
+    yield result
   }
-  return result
 }
 
 async function fetchNodesByType(
@@ -41,7 +41,7 @@ async function fetchNodesByType(
   def: IGatsbyNodeDefinition,
   ids: IRemoteId[]
 ): Promise<IFetchResult> {
-  const { gatsbyApi, formatLogMessage } = context
+  const { gatsbyApi, formatLogMessage, queryConcurrency } = context
   const { reporter } = gatsbyApi
 
   const operationName = collectNodeOperationNames(def.document)[0]
@@ -58,10 +58,7 @@ async function fetchNodesByType(
   const nodeFieldPath = findNodeFieldPath(def.document, operationName)
 
   try {
-    // TODO: batch this
-    const allNodes: IRemoteNode[] = []
-
-    for (const id of ids) {
+    const queryThunks = ids.map(id => async () => {
       const result = await context.execute({
         query,
         operationName,
@@ -75,7 +72,12 @@ async function fetchNodesByType(
         throw new Error(message)
       }
       const node = getFirstValueByPath(result.data, nodeFieldPath)
-      await addPaginatedFields(context, def, node as IRemoteNode)
+      return await addPaginatedFields(context, def, node as IRemoteNode)
+    })
+
+    // TODO: async generators for allNodes as well?
+    const allNodes: IRemoteNode[] = []
+    for await (const node of runConcurrently(queryThunks, queryConcurrency)) {
       allNodes.push(node)
     }
 

@@ -6,23 +6,23 @@ import {
 } from "../../../types"
 import { paginatedNodeFetch } from "./fetch-nodes-paginated"
 import { collectListOperationNames } from "./operation-utils"
+import { runConcurrently } from "../../../utils/run-concurrently"
 
 /**
  * fetches nodes from the remote GraphQL server
  *
  * @returns {Array}
  */
-export async function fetchAllNodes(
+export async function* fetchAllNodes(
   context: ISourcingContext
-): Promise<IFetchResult[]> {
+): AsyncGenerator<IFetchResult> {
   const { fetchingActivity, gatsbyNodeDefs } = context
   fetchingActivity.start()
   try {
-    const result: IFetchResult[] = []
-    for (const [, def] of gatsbyNodeDefs) {
-      result.push(await fetchNodesByType(context, def))
-    }
-    return result
+    const queryThunks = [...gatsbyNodeDefs.values()].map(def => () =>
+      fetchNodesByType(context, def)
+    )
+    return runConcurrently(queryThunks, context.queryConcurrency)
   } finally {
     fetchingActivity.end()
   }
@@ -43,7 +43,7 @@ async function fetchNodesByType(
   activity.start()
 
   try {
-    // TODO: async generator for allNodes?
+    // TODO: async generator for allNodes and paginatedNodeFetch too?
     const allNodes: IRemoteNode[] = []
     const listOperations = collectListOperationNames(nodeDefinition.document)
     for (const nodeListQuery of listOperations) {
