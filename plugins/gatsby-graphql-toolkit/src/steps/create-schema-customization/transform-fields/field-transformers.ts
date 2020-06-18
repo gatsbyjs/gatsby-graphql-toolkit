@@ -196,7 +196,7 @@ function resolveNode(
   if (!def) {
     return
   }
-  const id = context.idTransform.toGatsbyNodeId(source, def)
+  const id = context.idTransform.remoteNodeToGatsbyId(source, def)
   const type = context.typeNameTransform.toGatsbyTypeName(remoteTypeName)
 
   return resolverContext.nodeModel.getNodeById({ id, type })

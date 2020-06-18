@@ -45,7 +45,7 @@ export async function createNode(
 
   const node: NodeInput = {
     ...nodeData,
-    id: context.idTransform.toGatsbyNodeId(remoteNode, def),
+    id: context.idTransform.remoteNodeToGatsbyId(remoteNode, def),
     parent: undefined,
     internal: {
       contentDigest: createContentDigest(remoteNode),

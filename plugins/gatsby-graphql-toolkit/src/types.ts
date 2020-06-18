@@ -58,14 +58,30 @@ export interface IRemoteNode {
   [key: string]: unknown
 }
 
+export interface IRemoteId {
+  [remoteIdField: string]: unknown
+}
+
 export interface IFetchResult {
   remoteTypeName: string
   allNodes: IRemoteNode[]
 }
 
 export interface INodeIdTransform {
-  toGatsbyNodeId: (
+  remoteNodeToGatsbyId: (
     remoteNode: IRemoteNode,
+    def: IGatsbyNodeDefinition
+  ) => string
+  remoteNodeToId: (
+    remoteNode: IRemoteNode,
+    def: IGatsbyNodeDefinition
+  ) => IRemoteId
+  gatsbyNodeToRemoteId: (
+    gatsbyNode: Node,
+    def: IGatsbyNodeDefinition
+  ) => IRemoteId
+  remoteIdToGatsbyNodeId: (
+    remoteId: IRemoteId,
     def: IGatsbyNodeDefinition
   ) => string
 }
