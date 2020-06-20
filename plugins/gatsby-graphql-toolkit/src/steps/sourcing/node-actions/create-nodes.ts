@@ -12,9 +12,9 @@ export async function createNodes(
   const typeNameField = context.gatsbyFieldAliases["__typename"]
   for await (const remoteNode of remoteNodes) {
     if (!remoteNode || remoteNode[typeNameField] !== remoteTypeName) {
-      // Possible when fetching on complex interface or union type fields
+      // Possible when fetching complex interface or union type fields
       // or when some node is `null`
-      return
+      continue
     }
     await createNode(context, remoteNode)
   }
