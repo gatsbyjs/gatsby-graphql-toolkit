@@ -9,8 +9,10 @@ const path = require("path")
 const { parse, print, Source, buildASTSchema } = require("graphql")
 const {
   sourceAllNodes,
+} = require("./plugins/gatsby-graphql-toolkit/dist/steps/sourcing/source-all-nodes")
+const {
   sourceNodeChanges,
-} = require("./plugins/gatsby-graphql-toolkit/dist/steps/sourcing/source-nodes")
+} = require("./plugins/gatsby-graphql-toolkit/dist/steps/sourcing/source-node-changes")
 const {
   createSchemaCustomization,
 } = require("./plugins/gatsby-graphql-toolkit/dist/steps/create-schema-customization/create-schema-customization")
@@ -136,6 +138,7 @@ async function getSourcingConfig(gatsbyApi, pluginOptions) {
     gatsbyNodeDefs,
     gatsbyTypePrefix,
     execute: withQueue(execute, { concurrency: 10 }),
+    verbose: true,
   })
 }
 
@@ -154,12 +157,12 @@ async function execute({ operationName, query, variables = {} }) {
 exports.onPreBootstrap = async (gatsbyApi, pluginOptions) => {
   await writeDefaultFragments()
 }
-/*
+
 exports.createSchemaCustomization = async (gatsbyApi, pluginOptions) => {
   const config = await getSourcingConfig(gatsbyApi, pluginOptions)
   await createSchemaCustomization(config)
 }
-*/
+
 exports.sourceNodes = async (gatsbyApi, pluginOptions) => {
   const { cache } = gatsbyApi
   const config = await getSourcingConfig(gatsbyApi, pluginOptions)
