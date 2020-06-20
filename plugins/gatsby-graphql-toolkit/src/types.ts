@@ -62,7 +62,7 @@ export interface IRemoteId {
 
 export interface IFetchResult {
   remoteTypeName: string
-  allNodes: IRemoteNode[]
+  allNodes: AsyncIterable<IRemoteNode>
 }
 
 export interface INodeUpdateEvent {

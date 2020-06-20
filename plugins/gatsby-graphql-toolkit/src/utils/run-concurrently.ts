@@ -23,7 +23,7 @@ export type AsyncThunk<T> = () => Promise<T>
 export async function* runConcurrently<T>(
   thunks: AsyncThunk<T>[],
   concurrency: number
-): AsyncGenerator<T> {
+): AsyncIterable<T> {
   // TODO: start the next task as soon as the previous ends vs running in chunks?
   //   also consider binding this with query batching
   const taskChunks: AsyncThunk<T>[][] = chunk(thunks, concurrency)

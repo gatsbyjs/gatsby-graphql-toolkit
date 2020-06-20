@@ -62,20 +62,20 @@ async function getGatsbyNodeTypes() {
   // prettier-ignore
   return (gatsbyNodeTypes = [
     ...fromIface(`EntryInterface`, type => `
-      query ALL_${type} { entries(type: "${type.split(`_`)[0]}", limit: $limit, offset: $offset) }
-      query ONE_${type} { entry(type: "${type.split(`_`)[0]}", id: $id) }
+      query LIST_${type} { entries(type: "${type.split(`_`)[0]}", limit: $limit, offset: $offset) }
+      query NODE_${type} { entry(type: "${type.split(`_`)[0]}", id: $id) }
     `),
     ...fromIface(`AssetInterface`, type => `
-      query ALL_${type} { assets(limit: $limit, offset: $offset) }
+      query LIST_${type} { assets(limit: $limit, offset: $offset) }
     `),
     ...fromIface(`UserInterface`, type => `
-      query ALL_${type} { users(limit: $limit, offset: $offset) }
+      query LIST_${type} { users(limit: $limit, offset: $offset) }
     `),
     ...fromIface(`TagInterface`, type => `
-      query ALL_${type} { tags(limit: $limit, offset: $offset) }
+      query LIST_${type} { tags(limit: $limit, offset: $offset) }
     `),
     ...fromIface(`GlobalSetInterface`, type => `
-      query ALL_${type} { globalSets(limit: $limit, offset: $offset) }
+      query LIST_${type} { globalSets(limit: $limit, offset: $offset) }
     `),
   ])
 }

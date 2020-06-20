@@ -1,39 +1,43 @@
-import {
-  IFetchResult,
-  ISourcingContext,
-  IRemoteNode,
-  IGatsbyNodeDefinition,
-} from "../../../types"
+import { ISourcingContext, IRemoteNode } from "../../../types"
 import { processRemoteNode } from "./process-remote-node"
 import { NodeInput } from "gatsby"
+import { getGatsbyNodeDefinition } from "../node-definition-helpers"
+import { inspect } from "util"
 
 export async function createNodes(
   context: ISourcingContext,
-  result: IFetchResult
+  remoteTypeName: string,
+  remoteNodes: AsyncIterable<IRemoteNode>
 ) {
-  const def = context.gatsbyNodeDefs.get(result.remoteTypeName)
-  if (!def) {
-    throw new Error(`${result.remoteTypeName} is not a Gatsby node type`)
-  }
   const typeNameField = context.gatsbyFieldAliases["__typename"]
-  for await (const node of result.allNodes) {
-    if (!node || node[typeNameField] !== def.remoteTypeName) {
+  for await (const remoteNode of remoteNodes) {
+    if (!remoteNode || remoteNode[typeNameField] !== remoteTypeName) {
       // Possible when fetching on complex interface or union type fields
       // or when some node is `null`
-      continue
+      return
     }
-    await createNode(context, def, node)
+    await createNode(context, remoteNode)
   }
 }
 
 export async function createNode(
   context: ISourcingContext,
-  def: IGatsbyNodeDefinition,
   remoteNode: IRemoteNode
 ) {
-  const {
-    gatsbyApi: { actions, createContentDigest },
-  } = context
+  const { gatsbyApi, gatsbyFieldAliases } = context
+  const { actions, createContentDigest } = gatsbyApi
+
+  const typeNameField = gatsbyFieldAliases["__typename"]
+  const remoteTypeName = remoteNode[typeNameField]
+
+  if (!remoteTypeName || typeof remoteTypeName !== `string`) {
+    throw new Error(
+      `Remote node doesn't have expected field ${typeNameField}:\n` +
+        inspect(remoteNode)
+    )
+  }
+
+  const def = getGatsbyNodeDefinition(context, remoteTypeName)
 
   // TODO: assert that all expected fields exist, i.e. remoteTypeName, remoteNodeId
   //   also assert that Gatsby internal field names are not used

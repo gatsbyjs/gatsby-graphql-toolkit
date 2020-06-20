@@ -1,10 +1,10 @@
-import { ISourcingContext } from "../../../types"
 import {
   OperationDefinitionNode,
   DocumentNode,
   print,
   ExecutionResult,
 } from "graphql"
+import { ISourcingContext } from "../../../types"
 import {
   IPaginationStrategy,
   PaginationStrategies,
@@ -36,7 +36,7 @@ interface IPage {
 export async function* paginate(
   context: ISourcingContext,
   plan: IPaginationPlan
-): AsyncGenerator<IPage> {
+): AsyncIterable<IPage> {
   const query = print(plan.document)
   let pageInfo: any = plan.strategy.start()
   let currentPage = 0
@@ -76,7 +76,7 @@ export async function* paginate(
 }
 
 export async function combine(
-  pages: AsyncGenerator<IPage>,
+  pages: AsyncIterable<IPage>,
   plan: IPaginationPlan
 ): Promise<ExecutionResult | void> {
   let result: ExecutionResult | void
