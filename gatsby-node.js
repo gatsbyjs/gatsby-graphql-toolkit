@@ -20,6 +20,9 @@ const {
 const {
   buildNodeDefinitions,
 } = require("./plugins/gatsby-graphql-toolkit/dist/steps/ingest-remote-schema/build-node-definitions")
+const {
+  withQueue
+} = require("./plugins/gatsby-graphql-toolkit/dist/config/executor")
 
 const craftGqlToken = process.env.CRAFTGQL_TOKEN
 const craftGqlUrl = process.env.CRAFTGQL_URL
@@ -132,18 +135,20 @@ async function getSourcingConfig(gatsbyApi, pluginOptions) {
     schema,
     gatsbyNodeDefs,
     gatsbyTypePrefix,
-    execute: ({ operationName, query, variables = {} }) => {
-      console.log(operationName, variables)
-      return fetch(craftGqlUrl, {
-        method: "POST",
-        body: JSON.stringify({ query, variables, operationName }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${craftGqlToken}`,
-        },
-      }).then(res => res.json())
-    },
+    execute: withQueue(execute, { concurrency: 10 }),
   })
+}
+
+async function execute({ operationName, query, variables = {} }) {
+  console.log(operationName, variables)
+  return fetch(craftGqlUrl, {
+    method: "POST",
+    body: JSON.stringify({ query, variables, operationName }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${craftGqlToken}`,
+    },
+  }).then(res => res.json())
 }
 
 exports.onPreBootstrap = async (gatsbyApi, pluginOptions) => {

@@ -14,7 +14,9 @@
   "author": "Vladimir Razuvaev <vladimir@gatsbyjs.com>",
   "license": "MIT",
   "dependencies": {
+    "@types/node-fetch": "^2.5.7",
     "lodash": "^4.17.15",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "p-queue": "^6.4.0"
   }
 }
