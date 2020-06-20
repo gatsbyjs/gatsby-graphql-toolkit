@@ -1,15 +1,15 @@
-export interface IPaginationState<TResult> {
-  result: TResult
+export interface IPageInfo {
   variables: { [name: string]: unknown }
   hasNextPage: boolean
 }
 
 type VariableName = string
 
-export interface IPaginationStrategy<T, U> {
+export interface IPaginationStrategy<TPage, TItem> {
   name: string
-  test(variableNames: Set<VariableName>): boolean
-  start(): IPaginationState<T>
-  addPage(state: IPaginationState<T>, page: T): IPaginationState<T>
-  getItems(pageOrResult: T): U[]
+  expectedVariableNames: VariableName[]
+  start(): IPageInfo
+  next(current: IPageInfo, page: TPage): IPageInfo
+  concat(acc: TPage, page: TPage): TPage
+  getItems(page: TPage): TItem[]
 }

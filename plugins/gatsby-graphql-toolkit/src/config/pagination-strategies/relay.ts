@@ -1,32 +1,37 @@
 import { DEFAULT_PAGE_SIZE } from "../../constants"
 import { IPaginationStrategy } from "./types"
 
-interface IRelayResult {
+interface IRelayPage {
   edges: { cursor: string; node: object }[]
   pageInfo: { hasNextPage: boolean }
 }
 
-export const RelayForward: IPaginationStrategy<IRelayResult, object> = {
+export const RelayForward: IPaginationStrategy<IRelayPage, object> = {
   name: "RelayForward",
-  test: variables => variables.has(`first`) && variables.has(`after`),
+  expectedVariableNames: [`first`, `after`],
   start() {
     return {
-      result: { edges: [], pageInfo: { hasNextPage: true } },
       variables: { first: DEFAULT_PAGE_SIZE, after: undefined },
       hasNextPage: true,
     }
   },
-  addPage(state, page) {
+  next(state, page) {
     const tail = page.edges[page.edges.length - 1]
     const first = Number(state.variables.first) ?? DEFAULT_PAGE_SIZE
     const after = tail?.cursor
     return {
-      result: {
-        pageInfo: page.pageInfo,
-        edges: state.result.edges.concat(page.edges),
-      },
       variables: { first, after },
       hasNextPage: Boolean(page?.pageInfo?.hasNextPage && tail),
+    }
+  },
+  concat(acc, page) {
+    return {
+      ...acc,
+      edges: {
+        ...acc.edges,
+        ...page.edges
+      },
+      pageInfo: page.pageInfo
     }
   },
   getItems(pageOrResult) {

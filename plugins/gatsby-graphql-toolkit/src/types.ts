@@ -18,11 +18,15 @@ export interface IGatsbyFieldAliases {
 }
 export type FragmentMap = Map<RemoteTypeName, FragmentDefinitionNode>
 
-export interface IExecuteArgs {
+export interface IQueryExecutionArgs {
   query: string
   operationName: string
   variables: object
   document: DocumentNode
+}
+
+export interface IQueryExecutor {
+  (args: IQueryExecutionArgs): Promise<ExecutionResult>
 }
 
 export interface ISourcingConfig {
@@ -30,7 +34,7 @@ export interface ISourcingConfig {
   schema: GraphQLSchema
   gatsbyNodeDefs: Map<RemoteTypeName, IGatsbyNodeDefinition>
   gatsbyTypePrefix: string
-  execute: (args: IExecuteArgs) => Promise<ExecutionResult>
+  execute: IQueryExecutor
 
   queryConcurrency?: number
   verbose?: boolean

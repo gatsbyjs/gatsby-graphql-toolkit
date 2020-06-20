@@ -2,6 +2,7 @@ import {
   NameNode,
   FieldNode,
   FragmentDefinitionNode,
+  OperationDefinitionNode,
   SelectionSetNode,
   SelectionNode,
   NamedTypeNode,
@@ -134,4 +135,8 @@ export function stringValue(value: string): StringValueNode {
 
 export function isFragment(node: ASTNode): node is FragmentDefinitionNode {
   return node.kind === "FragmentDefinition"
+}
+
+export function isOperation(node: ASTNode): node is OperationDefinitionNode {
+  return node.kind === "OperationDefinition"
 }

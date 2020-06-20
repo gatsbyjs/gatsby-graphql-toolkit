@@ -16,7 +16,7 @@ export async function createNodes(
     throw new Error(`${result.remoteTypeName} is not a Gatsby node type`)
   }
   const typeNameField = context.gatsbyFieldAliases["__typename"]
-  for (const node of result.allNodes) {
+  for await (const node of result.allNodes) {
     if (!node || node[typeNameField] !== def.remoteTypeName) {
       // Possible when fetching on complex interface or union type fields
       // or when some node is `null`

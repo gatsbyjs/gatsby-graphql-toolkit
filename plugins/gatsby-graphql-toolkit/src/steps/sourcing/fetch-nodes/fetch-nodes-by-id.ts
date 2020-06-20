@@ -54,29 +54,34 @@ async function fetchNodesByType(
     formatLogMessage(`fetching ${def.remoteTypeName}`)
   )
   activity.start()
-  const query = print(def.document)
-  const nodeFieldPath = findNodeFieldPath(def.document, operationName)
+
+  const fetchOneNode = async id => {
+    const query = print(def.document)
+    const nodeFieldPath = findNodeFieldPath(def.document, operationName)
+
+    const result = await context.execute({
+      query,
+      operationName,
+      document: def.document,
+      variables: def.nodeQueryVariables(id),
+    })
+    if (!result.data) {
+      const message = result.errors?.length
+        ? result.errors[0].message
+        : `Could not execute ${operationName} query for ${def.remoteTypeName} node type`
+      throw new Error(message)
+    }
+    const node = getFirstValueByPath(result.data, nodeFieldPath)
+    return await addPaginatedFields(context, def, node as IRemoteNode)
+  }
 
   try {
-    const queryThunks = ids.map(id => async () => {
-      const result = await context.execute({
-        query,
-        operationName,
-        document: def.document,
-        variables: def.nodeQueryVariables(id),
-      })
-      if (!result.data) {
-        const message = result.errors?.length
-          ? result.errors[0].message
-          : `Could not execute ${operationName} query for ${def.remoteTypeName} node type`
-        throw new Error(message)
-      }
-      const node = getFirstValueByPath(result.data, nodeFieldPath)
-      return await addPaginatedFields(context, def, node as IRemoteNode)
-    })
-
     // TODO: async generators for allNodes as well?
+    const queryThunks = ids.map(id => () =>
+      fetchOneNode(context, def, operationName, id)
+    )
     const allNodes: IRemoteNode[] = []
+
     for await (const node of runConcurrently(queryThunks, queryConcurrency)) {
       allNodes.push(node)
     }

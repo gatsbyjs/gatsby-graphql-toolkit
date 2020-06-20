@@ -3,12 +3,11 @@ import {
   FragmentSpreadNode,
   FragmentDefinitionNode,
   FieldNode,
-  VariableNode,
   visit,
-  BREAK,
+  BREAK, VariableNode
 } from "graphql"
-import { IPaginationStrategy } from "../../../config/pagination-strategies"
 import * as GraphQLAST from "../../../utils/ast-nodes"
+import { IPaginationStrategy } from "../../../config/pagination-strategies"
 
 /**
  * Given a query and an effective pagination strategy - returns field path to the first
@@ -29,13 +28,18 @@ export function findPaginatedFieldPath(
   operationName: string,
   paginationStrategy: IPaginationStrategy<any, any>
 ): string[] {
+  const expectedVars = paginationStrategy.expectedVariableNames
+
   const isPaginatedField = (node: FieldNode) => {
     const variables = (node.arguments ?? [])
       .map(arg => arg.value)
       .filter((value): value is VariableNode => value.kind === "Variable")
       .map(value => value.name.value)
 
-    return paginationStrategy.test(new Set(variables))
+    return (
+      variables.length > 0 &&
+      expectedVars.every(name => variables.includes(name))
+    )
   }
   return findFieldPath(document, operationName, isPaginatedField)
 }
@@ -53,7 +57,7 @@ export function findNodeFieldPath(
   return findFieldPath(document, operationName, hasVariableArgument)
 }
 
-function findFieldPath(
+export function findFieldPath(
   document: DocumentNode,
   operationName: string,
   predicate: (field: FieldNode) => boolean
@@ -102,7 +106,7 @@ function findFieldPath(
   return fieldPath
 }
 
-export function getFirstValueByPath(item: object | object[], path: string[]) {
+export function getFirstValueByPath(item: unknown, path: string[]) {
   if (path.length === 0) {
     return item
   }

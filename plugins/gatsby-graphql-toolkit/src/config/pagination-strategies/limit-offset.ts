@@ -3,22 +3,23 @@ import { IPaginationStrategy } from "./types";
 
 export const LimitOffset: IPaginationStrategy<unknown[], unknown> = {
   name: "LimitOffset",
-  test: variables => variables.has(`limit`) && variables.has(`offset`),
+  expectedVariableNames: [`limit`, `offset`],
   start() {
     return {
-      result: [],
       variables: { limit: DEFAULT_PAGE_SIZE, offset: 0 },
       hasNextPage: true,
     }
   },
-  addPage(state, page) {
+  next(state, page) {
     const limit = Number(state.variables.limit) ?? DEFAULT_PAGE_SIZE
     const offset = Number(state.variables.offset) + limit
     return {
-      result: state.result.concat(page),
       variables: { limit, offset },
       hasNextPage: page.length === limit,
     }
+  },
+  concat(result, page) {
+    return result.concat(page)
   },
   getItems(pageOrResult) {
     return pageOrResult
