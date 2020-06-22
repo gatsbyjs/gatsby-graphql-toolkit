@@ -6,28 +6,16 @@
 const fs = require("fs-extra")
 const fetch = require("node-fetch")
 const path = require("path")
-const { parse, print, Source, buildASTSchema } = require("graphql")
+const { print, Source } = require("graphql")
 const {
   sourceAllNodes,
-} = require("./plugins/gatsby-graphql-toolkit/dist/steps/sourcing/source-all-nodes")
-const {
   sourceNodeChanges,
-} = require("./plugins/gatsby-graphql-toolkit/dist/steps/sourcing/source-node-changes")
-const {
   createSchemaCustomization,
-} = require("./plugins/gatsby-graphql-toolkit/dist/steps/create-schema-customization/create-schema-customization")
-const {
   generateDefaultFragments,
-} = require("./plugins/gatsby-graphql-toolkit/dist/steps/ingest-remote-schema/generate-default-fragments")
-const {
   buildNodeDefinitions,
-} = require("./plugins/gatsby-graphql-toolkit/dist/steps/ingest-remote-schema/build-node-definitions")
-const {
-  withQueue
-} = require("./plugins/gatsby-graphql-toolkit/dist/config/query-executor")
-const {
+  withQueue,
   loadSchema
-} = require("./plugins/gatsby-graphql-toolkit/dist/config/load-schema")
+} = require("./plugins/gatsby-graphql-toolkit/dist")
 
 const craftGqlToken = process.env.CRAFTGQL_TOKEN
 const craftGqlUrl = process.env.CRAFTGQL_URL
