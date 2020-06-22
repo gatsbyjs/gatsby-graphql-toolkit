@@ -24,7 +24,7 @@ const {
 } = require("./plugins/gatsby-graphql-toolkit/dist/steps/ingest-remote-schema/build-node-definitions")
 const {
   withQueue
-} = require("./plugins/gatsby-graphql-toolkit/dist/config/executor")
+} = require("./plugins/gatsby-graphql-toolkit/dist/config/query-executor")
 const {
   loadSchema
 } = require("./plugins/gatsby-graphql-toolkit/dist/config/load-schema")
