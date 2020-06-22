@@ -4,7 +4,7 @@ import { IQueryExecutionArgs, IQueryExecutor } from "../types"
 
 export function createNetworkExecutor(
   uri: string,
-  fetchOptions: FetchOptions
+  fetchOptions: FetchOptions = {}
 ): IQueryExecutor {
   return async function execute(args) {
     const { query, variables, operationName } = args

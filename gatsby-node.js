@@ -25,6 +25,9 @@ const {
 const {
   withQueue
 } = require("./plugins/gatsby-graphql-toolkit/dist/config/executor")
+const {
+  loadSchema
+} = require("./plugins/gatsby-graphql-toolkit/dist/config/load-schema")
 
 const craftGqlToken = process.env.CRAFTGQL_TOKEN
 const craftGqlUrl = process.env.CRAFTGQL_URL
@@ -44,9 +47,11 @@ let sourcingConfig
 
 async function getSchema() {
   if (!schema) {
-    schema = buildASTSchema(
-      parse(fs.readFileSync(__dirname + "/schema.graphql").toString())
-    )
+    schema = await loadSchema(execute)
+
+    // schema = buildASTSchema(
+    //   parse(fs.readFileSync(__dirname + "/schema.graphql").toString())
+    // )
   }
   return schema
 }

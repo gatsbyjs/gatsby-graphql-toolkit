@@ -22,7 +22,7 @@ export interface IQueryExecutionArgs {
   query: string
   operationName: string
   variables: object
-  document: DocumentNode
+  document?: DocumentNode
 }
 
 export interface IQueryExecutor {
