@@ -14,7 +14,7 @@ import {
   findPaginatedFieldPath,
   getFirstValueByPath,
   updateFirstValueByPath,
-} from "./field-path-utils"
+} from "../utils/field-path-utils"
 import { MAX_QUERY_PAGES } from "../../../constants"
 import { inspect } from "util"
 
@@ -75,7 +75,7 @@ export async function* paginate(
   }
 }
 
-export async function combine(
+export async function combinePages(
   pages: AsyncIterable<IPage>,
   plan: IPaginationPlan
 ): Promise<ExecutionResult | void> {

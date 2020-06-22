@@ -3,9 +3,12 @@ import {
   IRemoteNode,
   ISourcingContext,
 } from "../../../types"
-import { collectNodeFieldOperationNames } from "../node-definition-helpers"
-import { combine, paginate, planPagination } from "./paginate"
-import { findNodeFieldPath, getFirstValueByPath } from "./field-path-utils"
+import { collectNodeFieldOperationNames } from "../utils/node-definition-helpers"
+import { combinePages, paginate, planPagination } from "./paginate"
+import {
+  findNodeFieldPath,
+  getFirstValueByPath,
+} from "../utils/field-path-utils"
 
 export async function addPaginatedFields(
   context: ISourcingContext,
@@ -19,7 +22,7 @@ export async function addPaginatedFields(
   for (const fieldQuery of nodeFieldQueries) {
     const plan = planPagination(def.document, fieldQuery, variables)
     const pages = paginate(context, plan)
-    const result = await combine(pages, plan)
+    const result = await combinePages(pages, plan)
 
     if (!result || !result.data) {
       continue

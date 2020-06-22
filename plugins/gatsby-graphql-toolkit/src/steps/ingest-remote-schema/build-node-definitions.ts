@@ -1,6 +1,6 @@
 import { GraphQLSchema, parse } from "graphql"
 import { defaultGatsbyFieldAliases } from "../../config/default-gatsby-field-aliases"
-import { compileGatsbyNodeDocument } from "./compile-queries/compile-node-document"
+import { compileNodeDocument } from "./compile-queries/compile-node-document"
 import { compileNodeFragments } from "./compile-queries/compile-node-fragments"
 import {
   IGatsbyNodeConfig,
@@ -40,7 +40,7 @@ export function buildNodeDefinitions({
 
   gatsbyNodeTypes.forEach(config => {
     const def: IGatsbyNodeDefinition = {
-      document: compileGatsbyNodeDocument({
+      document: compileNodeDocument({
         schema,
         gatsbyNodeType: config,
         gatsbyFieldAliases,

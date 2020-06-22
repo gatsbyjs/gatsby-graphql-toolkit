@@ -31,7 +31,7 @@ export function withQueue(
   }
 }
 
-export function createDefaultExecutor(
+export function createDefaultQueryExecutor(
   uri: string,
   fetchOptions: FetchOptions,
   queueOptions: PQueueOptions<any, any> = { concurrency: 5 }

@@ -1,8 +1,8 @@
+import { NodeInput } from "gatsby"
+import { inspect } from "util"
 import { ISourcingContext, IRemoteNode } from "../../../types"
 import { processRemoteNode } from "./process-remote-node"
-import { NodeInput } from "gatsby"
-import { getGatsbyNodeDefinition } from "../node-definition-helpers"
-import { inspect } from "util"
+import { getGatsbyNodeDefinition } from "../utils/node-definition-helpers"
 
 export async function createNodes(
   context: ISourcingContext,

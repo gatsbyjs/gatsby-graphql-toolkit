@@ -1,7 +1,9 @@
 import { ISourcingContext, IRemoteNode } from "../../../types"
-import { collectListOperationNames } from "../node-definition-helpers"
+import {
+  collectListOperationNames,
+  getGatsbyNodeDefinition,
+} from "../utils/node-definition-helpers"
 import { paginate, planPagination } from "./paginate"
-import { getGatsbyNodeDefinition } from "../node-definition-helpers"
 import { addPaginatedFields } from "./fetch-node-fields"
 
 /**

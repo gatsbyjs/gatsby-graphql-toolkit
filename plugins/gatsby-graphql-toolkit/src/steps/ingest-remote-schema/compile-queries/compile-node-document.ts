@@ -20,7 +20,7 @@ interface ICompileNodeDocumentArgs {
   fragments: FragmentDefinitionNode[]
 }
 
-export function compileGatsbyNodeDocument(args: ICompileNodeDocumentArgs) {
+export function compileNodeDocument(args: ICompileNodeDocumentArgs) {
   const fullDocument: DocumentNode = {
     ...args.queries,
     definitions: args.queries.definitions.concat(args.fragments),

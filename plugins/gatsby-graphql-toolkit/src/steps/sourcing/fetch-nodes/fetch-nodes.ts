@@ -1,8 +1,13 @@
 import { print } from "graphql"
 import { IRemoteId, IRemoteNode, ISourcingContext } from "../../../types"
-import { findNodeOperationName } from "../node-definition-helpers"
-import { findNodeFieldPath, getFirstValueByPath } from "./field-path-utils"
-import { getGatsbyNodeDefinition } from "../node-definition-helpers"
+import {
+  findNodeOperationName,
+  getGatsbyNodeDefinition,
+} from "../utils/node-definition-helpers"
+import {
+  findNodeFieldPath,
+  getFirstValueByPath,
+} from "../utils/field-path-utils"
 import { addPaginatedFields } from "./fetch-node-fields"
 
 export async function* fetchNodesById(

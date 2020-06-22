@@ -1,5 +1,5 @@
 import { DocumentNode, OperationDefinitionNode } from "graphql"
-import { IGatsbyNodeDefinition, ISourcingContext } from "../../types"
+import { IGatsbyNodeDefinition, ISourcingContext } from "../../../types"
 
 export function collectListOperationNames(doc: DocumentNode): string[] {
   return collectOperationNames(doc, /^LIST/)

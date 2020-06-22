@@ -17,8 +17,8 @@ const {
   createSchemaCustomization,
 } = require("./plugins/gatsby-graphql-toolkit/dist/steps/create-schema-customization/create-schema-customization")
 const {
-  generateDefaultUserFragments,
-} = require("./plugins/gatsby-graphql-toolkit/dist/steps/ingest-remote-schema/generate-default-user-fragments")
+  generateDefaultFragments,
+} = require("./plugins/gatsby-graphql-toolkit/dist/steps/ingest-remote-schema/generate-default-fragments")
 const {
   buildNodeDefinitions,
 } = require("./plugins/gatsby-graphql-toolkit/dist/steps/ingest-remote-schema/build-node-definitions")
@@ -91,7 +91,7 @@ async function getGatsbyNodeTypes() {
 }
 
 async function writeDefaultFragments() {
-  const defaultFragments = generateDefaultUserFragments({
+  const defaultFragments = generateDefaultFragments({
     schema: await getSchema(),
     gatsbyNodeTypes: await getGatsbyNodeTypes(),
   })

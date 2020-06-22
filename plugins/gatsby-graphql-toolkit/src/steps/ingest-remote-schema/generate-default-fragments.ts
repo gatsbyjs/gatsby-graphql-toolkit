@@ -45,7 +45,7 @@ export interface IDefaultFragmentsConfig {
   defaultArgumentValues?: IArgumentValueResolver[]
 }
 
-export function generateDefaultUserFragments(
+export function generateDefaultFragments(
   config: IDefaultFragmentsConfig
 ): Map<RemoteTypeName, string> {
   const result = new Map<RemoteTypeName, string>()
