@@ -136,7 +136,7 @@ async function getSourcingConfig(gatsbyApi, pluginOptions) {
 }
 
 async function execute({ operationName, query, variables = {} }) {
-  console.log(operationName, variables)
+  // console.log(operationName, variables)
   return fetch(craftGqlUrl, {
     method: "POST",
     body: JSON.stringify({ query, variables, operationName }),
