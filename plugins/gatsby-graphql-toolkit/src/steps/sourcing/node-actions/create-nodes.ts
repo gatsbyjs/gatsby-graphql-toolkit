@@ -8,13 +8,13 @@ export async function createNodes(
   context: ISourcingContext,
   remoteTypeName: string,
   remoteNodes: AsyncIterable<IRemoteNode>
-) {
+): Promise<void> {
   const typeNameField = context.gatsbyFieldAliases["__typename"]
   for await (const remoteNode of remoteNodes) {
     if (!remoteNode || remoteNode[typeNameField] !== remoteTypeName) {
-      // Possible when fetching complex interface or union type fields
-      // or when some node is `null`
-      continue
+      throw new Error(
+        `Got unexpected node for type ${remoteTypeName}: ${inspect(remoteNode)}`
+      )
     }
     await createNode(context, remoteNode)
   }

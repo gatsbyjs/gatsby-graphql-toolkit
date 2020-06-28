@@ -41,6 +41,7 @@ export async function* fetchNodeList(
   remoteTypeName: string,
   listOperationName: string
 ): AsyncIterable<IRemoteNode> {
+  const typeNameField = context.gatsbyFieldAliases["__typename"]
   const nodeDefinition = getGatsbyNodeDefinition(context, remoteTypeName)
   const plan = planPagination(nodeDefinition.document, listOperationName)
 
@@ -48,6 +49,11 @@ export async function* fetchNodeList(
     const partialNodes = plan.strategy.getItems(page.fieldValue)
 
     for (const node of partialNodes) {
+      if (!node || node[typeNameField] !== remoteTypeName) {
+        // Possible when fetching complex interface or union type fields
+        // or when some node is `null`
+        continue
+      }
       // TODO: run in parallel?
       yield addPaginatedFields(context, nodeDefinition, node)
     }

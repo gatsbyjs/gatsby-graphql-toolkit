@@ -2,7 +2,7 @@ import { DEFAULT_PAGE_SIZE } from "../../constants"
 import { IPaginationStrategy } from "./types"
 
 interface IRelayPage {
-  edges: { cursor: string; node: object }[]
+  edges: { cursor: string; node: object | null }[]
   pageInfo: { hasNextPage: boolean }
 }
 
@@ -35,6 +35,6 @@ export const RelayForward: IPaginationStrategy<IRelayPage, object> = {
     }
   },
   getItems(pageOrResult) {
-    return pageOrResult.edges.map(edge => edge.node)
+    return pageOrResult.edges.map(edge => edge ? edge.node : null)
   },
 }

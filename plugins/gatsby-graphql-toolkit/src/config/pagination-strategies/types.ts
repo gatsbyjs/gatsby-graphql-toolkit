@@ -11,5 +11,5 @@ export interface IPaginationStrategy<TPage, TItem> {
   start(): IPageInfo
   next(current: IPageInfo, page: TPage): IPageInfo
   concat(acc: TPage, page: TPage): TPage
-  getItems(page: TPage): TItem[]
+  getItems(page: TPage): Array<TItem | null>
 }
