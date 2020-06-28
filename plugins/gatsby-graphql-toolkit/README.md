@@ -21,16 +21,17 @@ This new toolkit should solve all those issues and implement true node sourcing 
 
 ## Features
 
-- Source only what's needed
 - Efficient concurrent data fetching
-- Automatic pagination
-- Cache data between runs (source changes only)
-- Schema customization out of the box (no performance penalty from type inference)
+- Automatic data pagination
+- Cache data between runs (supports sourcing changes only)
+- Customize what is sourced
+- Schema customization out of the box (no performance penalty of type inference)
 - Designed to support [Gatsby Preview][3] and [Incremental Builds][4]
 
 ## How it works
 
-Let's start with a very simple GraphQL schema as an example:
+Let's imagine we have a very simple GraphQL API located at `https://www.example.com/graphql`.
+This example API has the following schema:
 
 ```graphql
 type Post {
@@ -52,8 +53,6 @@ type Query {
   posts(limit: Int = 10, offset: Int = 0): [Post]
 }
 ```
-
-Let's suppose it is available via the following endpoint: `https://www.example.com/graphql`.
 
 How do we source data from this GraphQL API using the toolkit?
 
@@ -99,7 +98,7 @@ async function createSourcingConfig(gatsbyApi) {
 exports.sourceNodes = async (gatsbyApi, pluginOptions) => {
   const config = await createSourcingConfig(gatsbyApi)
 
-  // Step5. Merge remote types into Gatsby Schema
+  // Step5. Add explicit types to gatsby schema
   await createSchemaCustomization(config)
 
   // Step6. Source nodes
@@ -107,11 +106,9 @@ exports.sourceNodes = async (gatsbyApi, pluginOptions) => {
 }
 ```
 
-### Essential steps
+Let's take a closer look at every step in this example
 
-Let's take a closer look at essential steps in this example
-
-#### 1. Setup remote schema
+### 1. Setup remote schema
 
 ```js
 const execute = createDefaultQueryExecutor(`https://www.example.com/graphql`)
@@ -127,7 +124,7 @@ expect a `schema` object (an instance of `GraphQLSchema` from `graphql-js` packa
 
 Use [`loadSchema`](#loadschema) to fetch the remote schema and re-construct it locally via GraphQL [introspection][5].
 
-#### 2. Configure Gatsby node types
+### 2. Configure Gatsby node types
 
 ```js
 const gatsbyNodeTypes = [
@@ -155,15 +152,9 @@ Settings explained:
   - Resolve node relationships in Gatsby schema customization
 
 - `queries` for node sourcing (without field selections).
-  Those are combined with custom fragments for actual data fetching (see the next 2 steps) .
+  Those are combined with custom fragments for actual data fetching (see the next 2 steps).
 
-  Query definitions must conform to [several conventions](#source-query-conventions) and enable:
-
-  - Full sourcing with [pagination](#pagination-and-sourcing)
-  - Partial sourcing (using multiple `LIST` queries with different filters)
-  - Node re-fetching (for [previews and delta sourcing](TODOC))
-
-#### 3. Define fields to be fetched (using GraphQL fragments)
+### 3. Define fields to be fetched (using GraphQL fragments)
 
 This step is probably the most important for the whole process.
 It enables different workflows with high granularity of sourcing.
@@ -198,17 +189,13 @@ fragment Author on Author {
 In [step 4](#4-compile-sourcing-queries) we combine those fragments with `queries` (from [step 2](#2-configure-gatsby-node-types))
 to produce final sourcing queries.
 
----
-But instead of generating them, you could have provided them yourself.
-You could have chosen the following workflow (as one of the possible options):
+But instead of generating them every time, you could have chosen the following workflow (as one of the possible options):
 
  1. Generate fragments on the very first run and save them somewhere in the `src` folder
- 2. Allow developers to edit those fragments in IDE (e.g. to remove fields they don't need, add [fields with arguments](TODOC), etc)
+ 2. Allow developers to edit those fragments in IDE (e.g. to remove fields they don't need, add fields with arguments, etc)
  3. Load modified fragments from the file system on each run
 
-This step leaves you enough space in organizing sourcing that is suitable for your specific case.
-
----
+This step leaves you enough space in organizing sourcing for your specific case.
 
 For example let's modify the `Author` fragment to fetch excerpts of author posts:
 
@@ -224,7 +211,7 @@ fragment CustomizedAuthorFragment on Author {
 
 We will see how this change affects sourcing queries in the next step. 
 
-#### 4. Compile sourcing queries
+### 4. Compile sourcing queries
 
 In this step we combine node configurations with custom fragments and compile final queries for node sourcing:
 
@@ -279,23 +266,25 @@ fragment CustomizedAuthorFragment on Author {
   remoteId: id
   name
   allPosts {
-    # Notice how the `excerpt` field was moved to the `Post` document
-    # and fields listed in the `remoteIdFields` setting added (to resolve the relation later)
     remoteTypeName: __typename
     remoteId: id
   }
 }
 ```
 
-Note the toolkit automatically adds field aliases for reserved gatsby fields (
-`id`, `internal`, `parent`, `children` and [`__typename` meta field][8])
+Notice how the `excerpt` field has been moved from `CustomizedAuthorFragment` to the 
+`CustomizedAuthorFragment__allPosts` in the `Post` document
+(and fields from `remoteIdFields` list have been added in its place).
+
+Also, note the toolkit automatically adds field aliases for reserved gatsby fields
+(`id`, `internal`, `parent`, `children` and [`__typename` meta field][8])
 
 You can write these documents somewhere to disk to ease debugging
 (generated queries are static and could be used manually to replicate the error).
 
 See [Debugging](#debugging) for details.
 
-#### 5. Merge remote types into Gatsby Schema
+### 5. Add explicit types to gatsby schema
 
 This step utilizes Gatsby [Schema Customization API][6] to describe node types specified in [step 2](#2-configure-gatsby-node-types).
  
@@ -317,7 +306,7 @@ type ExampleAuthor implements Node @dontInfer {
 ```
 (as well as custom resolvers for `ExamplePost.author` and `ExampleAuthor.allPosts` to resolve relationships)
 
-The toolkit uses remote schema as a reference, but it doesn't clone it 1 to 1.
+The toolkit uses the remote schema as a reference, but it doesn't clone it 1 to 1.
 
 In fact, it takes all the fields from the sourcing query (including aliased fields)
 and adds them to Gatsby node type with slight changes:
@@ -327,28 +316,31 @@ and adds them to Gatsby node type with slight changes:
  - all field arguments are removed
  
 ---
-**Why?** The primary motivation for this approach is to support arbitrary field arguments of
-the remote schema.
+**Why?** The primary motivation is to support arbitrary field arguments of the remote schema.
 
 In general the following field definition: `field(arg: Int!)` can't be directly copied
 from the remote schema unless we know all usages of `arg` during Gatsby build.
 
-To workaround this problem we require you to provide those usages in your fragments as
+To workaround this problem we require you to provide those usages in fragments as
 aliased fields:
 
+```graphql
 fragment MyFragment on RemoteType {
+  field(arg: 0)
   alias1: field(arg: 1)
   alias2: field(arg: 2)
 }
+```
 
-And then we add those `alias1` and `alias2` fields to Gatsby type so that you could access
+Then we add those `alias1` and `alias2` fields to Gatsby type so that you could access
 them in Gatsby queries.
+
 ---
 
-#### 6. Source nodes
+### 6. Source nodes
 
 Here we execute all the queries compiled in [step 4](#4-compile-sourcing-queries) against the remote GraphQL API
-and then transform results to Gatsby nodes using [createNode API](https://www.gatsbyjs.org/docs/actions/#createNode).
+and transform results to Gatsby nodes using [createNode API](https://www.gatsbyjs.org/docs/actions/#createNode).
 
 Let's take another look at one of the queries:
 
@@ -372,56 +364,82 @@ fragment CustomizedAuthorFragment on Author {
 ```
 
 The query has `$limit` and `$offset` variables for pagination (defined in [step 2](#2-configure-gatsby-node-types)).
-The toolkit uses variable names to resolve an effective [pagination strategy](#pagination-and-sourcing) which
+The toolkit uses variable names to resolve an effective [pagination adapter](#pagination-and-sourcing) which
 "knows" how to perform pagination.
 
-In our case it is `LimitOffset` strategy that provides values for `$limit` and `$offset` variables as the toolkit
-loops through pages (you can also define a [custom strategy](#custom-pagination-strategy)).
+In our case it is `LimitOffset` adapter that provides values for `$limit` and `$offset` variables as the toolkit
+loops through pages.
 
-### Sourcing changes (delta)
-TODOC
+Let's assume we've received a GraphQL result that looks like this:
 
-### Source Query Conventions
-TODOC
+```json
+{
+  "authors": [
+    {
+      "remoteTypeName": "Author",
+      "remoteId": "1",
+      "name": "Jane",
+      "allPosts": [
+        { "remoteTypeName": "Post", "remoteId":  "1" },
+        { "remoteTypeName": "Post", "remoteId":  "2" },
+        { "remoteTypeName": "Post", "remoteId":  "3" }
+      ]
+    }
+  ]
+}
+```
 
-### Pagination and sourcing
+The toolkit will create a single Gatsby node of type `ExampleAuthor` out of it as-is.
+The only difference is that it will add `id` field and required Gatsby `internal` fields.
+
+## Pagination and sourcing
 
 [Pagination][7] is essential for an effective node sourcing. But different GraphQL APIs
 implement pagination differently. The toolkit abstracts those differences away by
-introducing a concept of "pagination strategy".
+introducing a concept of "pagination adapter".
 
-Two most common strategies supported out of the box: `LimitOffset` and `RelayForward`.
-But you can also [define a custom one](#custom-pagination-strategy).
+Two most common adapters supported out of the box: `LimitOffset` and `RelayForward`.
+But you can also [define a custom one](#custom-pagination-adapter).
 
-The toolkit selects which strategy to use based on variable names used in the query:
+The toolkit selects which adapter to use based on variable names used in the query:
 
-- `LimitOffset`: when it sees `$limit` and `$offset` variables in the query
-- `RelayForward`: when it sees `$before` and `$start` variables in the query
+- `LimitOffset`: when it sees `$limit` and `$offset` variables
+- `RelayForward`: when it sees `$before` and `$start` variables
 
-In a nutshell pagination strategy simply "knows" which variable values to use for the
+In a nutshell pagination adapter simply "knows" which variable values to use for the
 given GraphQL query to fetch the next page of a field.
 
-#### RelayForward
-#### Custom Pagination Strategy
-TODOC
+## Sourcing changes (delta)
+
+## Configuration
+
+### Source Query Conventions
+
+### Gatsby field aliases
+
+### ID transformers
+
+### Custom Pagination Adapter
 
 ## Debugging
 
-TODOC
-
-## Tools Reference
+## Configuration Tools
 
 #### createDefaultQueryExecutor
 #### loadSchema
+
+## Query compilation tools
+
 #### generateDefaultFragments
 
-
+#### compileNodeQueries
 
 ## TODO:
 
 - [ ] Mime-type mapping on nodes
 - [ ] Ignore deleted nodes when resolving references
 - [ ] Allow custom variables in schema customization?
+- [ ] Add docs about "sourcing node field with pagination"
 - [ ] Tool: `fetchMissingReferences` fetch missing nodes for existing references
 - [ ] Tool: compile Gatsby fragments from remote GraphQL API fragments
 - [ ] Tool: auto-configuration for Relay-compliant GraphQL schemas 
