@@ -20,10 +20,12 @@ export async function createNodes(
   }
 }
 
+type GatsbyNodeId = string
+
 export async function createNode(
   context: ISourcingContext,
   remoteNode: IRemoteNode
-) {
+): Promise<GatsbyNodeId> {
   const { gatsbyApi, gatsbyFieldAliases } = context
   const { actions, createContentDigest } = gatsbyApi
 
@@ -45,11 +47,12 @@ export async function createNode(
   //   (Technically this should be caught in fragments validation before running a query
   //   but we should probably double-check for safety)
 
+  const id = context.idTransform.remoteNodeToGatsbyId(remoteNode, def)
   const nodeData = await processRemoteNode(context, def, remoteNode)
 
   const node: NodeInput = {
     ...nodeData,
-    id: context.idTransform.remoteNodeToGatsbyId(remoteNode, def),
+    id,
     parent: undefined,
     internal: {
       contentDigest: createContentDigest(remoteNode),
@@ -58,4 +61,5 @@ export async function createNode(
   }
 
   await actions.createNode(node)
+  return id
 }
