@@ -1,7 +1,7 @@
 import { DEFAULT_PAGE_SIZE } from "../../constants"
-import { IPaginationStrategy } from "./types";
+import { IPaginationAdapter } from "./types";
 
-export const LimitOffset: IPaginationStrategy<unknown[], unknown> = {
+export const LimitOffset: IPaginationAdapter<unknown[], unknown> = {
   name: "LimitOffset",
   expectedVariableNames: [`limit`, `offset`],
   start() {

@@ -1,12 +1,12 @@
 import { DEFAULT_PAGE_SIZE } from "../../constants"
-import { IPaginationStrategy } from "./types"
+import { IPaginationAdapter } from "./types"
 
 interface IRelayPage {
   edges: { cursor: string; node: object | null }[]
   pageInfo: { hasNextPage: boolean }
 }
 
-export const RelayForward: IPaginationStrategy<IRelayPage, object> = {
+export const RelayForward: IPaginationAdapter<IRelayPage, object> = {
   name: "RelayForward",
   expectedVariableNames: [`first`, `after`],
   start() {

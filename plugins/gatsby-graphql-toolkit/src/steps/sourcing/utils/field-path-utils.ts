@@ -7,10 +7,10 @@ import {
   BREAK, VariableNode
 } from "graphql"
 import * as GraphQLAST from "../../../utils/ast-nodes"
-import { IPaginationStrategy } from "../../../config/pagination-strategies"
+import { IPaginationAdapter } from "../../../config/pagination-adapters"
 
 /**
- * Given a query and an effective pagination strategy - returns field path to the first
+ * Given a query and an effective pagination adapter - returns field path to the first
  * paginated field
  *
  * E.g.
@@ -26,9 +26,9 @@ import { IPaginationStrategy } from "../../../config/pagination-strategies"
 export function findPaginatedFieldPath(
   document: DocumentNode,
   operationName: string,
-  paginationStrategy: IPaginationStrategy<any, any>
+  paginationAdapter: IPaginationAdapter<any, any>
 ): string[] {
-  const expectedVars = paginationStrategy.expectedVariableNames
+  const expectedVars = paginationAdapter.expectedVariableNames
 
   const isPaginatedField = (node: FieldNode) => {
     const variables = (node.arguments ?? [])

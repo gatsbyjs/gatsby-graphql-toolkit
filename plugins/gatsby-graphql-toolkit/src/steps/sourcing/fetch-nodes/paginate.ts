@@ -6,9 +6,9 @@ import {
 } from "graphql"
 import { ISourcingContext } from "../../../types"
 import {
-  IPaginationStrategy,
-  PaginationStrategies,
-} from "../../../config/pagination-strategies"
+  IPaginationAdapter,
+  PaginationAdapters,
+} from "../../../config/pagination-adapters"
 import * as GraphQLAST from "../../../utils/ast-nodes"
 import {
   findPaginatedFieldPath,
@@ -24,7 +24,7 @@ interface IPaginationPlan {
   variables: object
   fieldPath: string[]
   fieldName: string
-  strategy: IPaginationStrategy<any, any>
+  adapter: IPaginationAdapter<any, any>
 }
 
 interface IPage {
@@ -38,7 +38,7 @@ export async function* paginate(
   plan: IPaginationPlan
 ): AsyncIterable<IPage> {
   const query = print(plan.document)
-  let pageInfo: any = plan.strategy.start()
+  let pageInfo: any = plan.adapter.start()
   let currentPage = 0
 
   while (pageInfo.hasNextPage) {
@@ -63,13 +63,13 @@ export async function* paginate(
       // TODO: make MAX_QUERY_PAGES configurable?
       throw new Error(
         `Query ${plan.operationName} exceeded allowed maximum number of pages: ${currentPage}\n` +
-          `  Pagination strategy: ${plan.strategy.name}\n` +
+          `  Pagination: ${plan.adapter.name}\n` +
           `  Last variables: ${inspect(variables)}`
       )
     }
 
     const page = getFirstValueByPath(result.data, plan.fieldPath)
-    pageInfo = plan.strategy.next(pageInfo, page)
+    pageInfo = plan.adapter.next(pageInfo, page)
 
     yield { result, fieldValue: page, variables }
   }
@@ -84,7 +84,7 @@ export async function combinePages(
 
   for await (const page of pages) {
     combinedFieldValue = combinedFieldValue
-      ? plan.strategy.concat(combinedFieldValue, page.fieldValue)
+      ? plan.adapter.concat(combinedFieldValue, page.fieldValue)
       : page.fieldValue
     result = page.result
   }
@@ -100,8 +100,8 @@ export function planPagination(
   operationName: string,
   variables: object = {}
 ): IPaginationPlan {
-  const strategy = resolvePaginationStrategy(document, operationName)
-  const fieldPath = findPaginatedFieldPath(document, operationName, strategy)
+  const adapter = resolvePaginationAdapter(document, operationName)
+  const fieldPath = findPaginatedFieldPath(document, operationName, adapter)
   const fieldName = fieldPath[fieldPath.length - 1]
 
   if (!fieldName) {
@@ -114,17 +114,17 @@ export function planPagination(
     document,
     operationName,
     variables,
-    strategy,
+    adapter,
     fieldName,
     fieldPath,
   }
 }
 
-export function resolvePaginationStrategy(
+export function resolvePaginationAdapter(
   document: DocumentNode,
   operationName: string,
-  paginationStrategies: IPaginationStrategy<any, any>[] = PaginationStrategies
-): IPaginationStrategy<any, any> {
+  paginationAdapters: IPaginationAdapter<any, any>[] = PaginationAdapters
+): IPaginationAdapter<any, any> {
   const queryNode = findQueryDefinitionNode(document, operationName)
 
   const variableNames =
@@ -133,16 +133,16 @@ export function resolvePaginationStrategy(
     ) ?? []
 
   const variableSet = new Set(variableNames)
-  const strategy = paginationStrategies.find(s =>
+  const adapter = paginationAdapters.find(s =>
     s.expectedVariableNames.every(name => variableSet.has(name))
   )
-  if (!strategy) {
+  if (!adapter) {
     throw new Error(
-      `Could not resolve pagination strategy for the query ${operationName}`
+      `Could not resolve pagination adapter for the query ${operationName}`
     )
   }
 
-  return strategy
+  return adapter
 }
 
 export function findQueryDefinitionNode(

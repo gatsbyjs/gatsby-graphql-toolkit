@@ -263,7 +263,7 @@ function resolveFieldArguments(
 ): ArgumentNode[] {
   // We have two sources of arguments:
   // 1. Default argument values for type field
-  // 2. Pagination strategies (i.e. limit/offset or first/after, etc)
+  // 2. Pagination adapters (i.e. limit/offset or first/after, etc)
   if (field.args.length === 0) {
     return []
   }

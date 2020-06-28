@@ -5,7 +5,7 @@ export interface IPageInfo {
 
 type VariableName = string
 
-export interface IPaginationStrategy<TPage, TItem> {
+export interface IPaginationAdapter<TPage, TItem> {
   name: string
   expectedVariableNames: VariableName[]
   start(): IPageInfo
