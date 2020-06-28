@@ -3,6 +3,7 @@ export { loadSchema, introspectSchema } from "./config/load-schema"
 
 export {
   buildNodeDefinitions,
+  compileNodeQueries,
   generateDefaultFragments,
 } from "./steps/ingest-remote-schema"
 

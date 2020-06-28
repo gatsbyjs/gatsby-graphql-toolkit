@@ -12,9 +12,10 @@ const {
   sourceNodeChanges,
   createSchemaCustomization,
   generateDefaultFragments,
+  compileNodeQueries,
   buildNodeDefinitions,
   withQueue,
-  loadSchema
+  loadSchema,
 } = require("./plugins/gatsby-graphql-toolkit/dist")
 
 const craftGqlToken = process.env.CRAFTGQL_TOKEN
@@ -103,13 +104,10 @@ async function collectFragments() {
   return customFragments
 }
 
-async function writeCompiledQueries(nodeDefs) {
+async function writeCompiledQueries(nodeDocs) {
   await fs.ensureDir(debugDir)
-  for (const [, def] of nodeDefs) {
-    await fs.writeFile(
-      debugDir + `/${def.remoteTypeName}.graphql`,
-      print(def.document)
-    )
+  for (const [remoteTypeName, document] of nodeDocs) {
+    await fs.writeFile(debugDir + `/${remoteTypeName}.graphql`, print(document))
   }
 }
 
@@ -118,17 +116,20 @@ async function getSourcingConfig(gatsbyApi, pluginOptions) {
     return sourcingConfig
   }
   const schema = await getSchema()
-  const gatsbyNodeDefs = buildNodeDefinitions({
+  const gatsbyNodeTypes = await getGatsbyNodeTypes()
+
+  const documents = await compileNodeQueries({
     schema,
-    gatsbyNodeTypes: await getGatsbyNodeTypes(),
+    gatsbyNodeTypes,
     customFragments: await collectFragments(),
   })
-  await writeCompiledQueries(gatsbyNodeDefs)
+
+  await writeCompiledQueries(documents)
 
   return (sourcingConfig = {
     gatsbyApi,
     schema,
-    gatsbyNodeDefs,
+    gatsbyNodeDefs: buildNodeDefinitions({ gatsbyNodeTypes, documents }),
     gatsbyTypePrefix,
     execute: withQueue(execute, { concurrency: 10 }),
     verbose: true,
@@ -159,7 +160,7 @@ exports.createSchemaCustomization = async (gatsbyApi, pluginOptions) => {
 exports.sourceNodes = async (gatsbyApi, pluginOptions) => {
   const { cache } = gatsbyApi
   const config = await getSourcingConfig(gatsbyApi, pluginOptions)
-  const cached = await cache.get(`CRAFT_SOURCED`) || false
+  const cached = (await cache.get(`CRAFT_SOURCED`)) || false
 
   if (cached) {
     // Applying changes since the last sourcing
