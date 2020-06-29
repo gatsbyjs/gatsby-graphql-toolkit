@@ -1,5 +1,5 @@
 fragment general_Asset on general_Asset {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug

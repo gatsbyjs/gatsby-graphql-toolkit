@@ -1,5 +1,5 @@
 fragment profile_GlobalSet on profile_GlobalSet {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug

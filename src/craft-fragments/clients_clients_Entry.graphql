@@ -1,5 +1,5 @@
 fragment clients_clients_Entry on clients_clients_Entry {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug
@@ -21,7 +21,7 @@ fragment clients_clients_Entry on clients_clients_Entry {
   author {
     ... on UserInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   sectionId
@@ -33,13 +33,13 @@ fragment clients_clients_Entry on clients_clients_Entry {
   remoteChildren: children {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   remoteParent: parent {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   url
@@ -48,7 +48,7 @@ fragment clients_clients_Entry on clients_clients_Entry {
   team {
     ... on UserInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
 }

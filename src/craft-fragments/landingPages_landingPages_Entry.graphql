@@ -1,5 +1,5 @@
 fragment landingPages_landingPages_Entry on landingPages_landingPages_Entry {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug
@@ -21,7 +21,7 @@ fragment landingPages_landingPages_Entry on landingPages_landingPages_Entry {
   author {
     ... on UserInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   sectionId
@@ -33,19 +33,19 @@ fragment landingPages_landingPages_Entry on landingPages_landingPages_Entry {
   remoteChildren: children {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   remoteParent: parent {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   url
   postBlocks {
     ... on postBlocks_aside_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -66,7 +66,7 @@ fragment landingPages_landingPages_Entry on landingPages_landingPages_Entry {
       text
     }
     ... on postBlocks_images_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -87,13 +87,13 @@ fragment landingPages_landingPages_Entry on landingPages_landingPages_Entry {
       images {
         ... on AssetInterface {
           remoteTypeName: __typename
-          remoteNodeId: id
+          remoteId: id
         }
       }
       width
     }
     ... on postBlocks_table_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -127,7 +127,7 @@ fragment landingPages_landingPages_Entry on landingPages_landingPages_Entry {
       maxWidth
     }
     ... on postBlocks_chart_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -163,7 +163,7 @@ fragment landingPages_landingPages_Entry on landingPages_landingPages_Entry {
       caption
     }
     ... on postBlocks_text_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -184,7 +184,7 @@ fragment landingPages_landingPages_Entry on landingPages_landingPages_Entry {
       body
     }
     ... on postBlocks_code_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -207,7 +207,7 @@ fragment landingPages_landingPages_Entry on landingPages_landingPages_Entry {
       caption
     }
     ... on postBlocks_anchoredHeading_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -233,13 +233,13 @@ fragment landingPages_landingPages_Entry on landingPages_landingPages_Entry {
   metaImage {
     ... on AssetInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   metaKeywords {
     ... on TagInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
 }

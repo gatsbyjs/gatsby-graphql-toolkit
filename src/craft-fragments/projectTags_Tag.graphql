@@ -1,5 +1,5 @@
 fragment projectTags_Tag on projectTags_Tag {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug

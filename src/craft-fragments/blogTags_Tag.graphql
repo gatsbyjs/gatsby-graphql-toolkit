@@ -1,5 +1,5 @@
 fragment blogTags_Tag on blogTags_Tag {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug

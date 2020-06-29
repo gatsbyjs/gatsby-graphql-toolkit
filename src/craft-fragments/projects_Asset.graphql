@@ -1,5 +1,5 @@
 fragment projects_Asset on projects_Asset {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug

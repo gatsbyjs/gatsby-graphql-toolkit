@@ -1,5 +1,5 @@
 fragment plugins_Asset on plugins_Asset {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug

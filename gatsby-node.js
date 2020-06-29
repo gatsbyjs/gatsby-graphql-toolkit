@@ -14,7 +14,7 @@ const {
   generateDefaultFragments,
   compileNodeQueries,
   buildNodeDefinitions,
-  withQueue,
+  wrapQueryExecutorWithQueue,
   loadSchema,
 } = require("./plugins/gatsby-graphql-toolkit/dist")
 
@@ -131,21 +131,22 @@ async function getSourcingConfig(gatsbyApi, pluginOptions) {
     schema,
     gatsbyNodeDefs: buildNodeDefinitions({ gatsbyNodeTypes, documents }),
     gatsbyTypePrefix,
-    execute: withQueue(execute, { concurrency: 10 }),
+    execute: wrapQueryExecutorWithQueue(execute, { concurrency: 10 }),
     verbose: true,
   })
 }
 
 async function execute({ operationName, query, variables = {} }) {
   // console.log(operationName, variables)
-  return fetch(craftGqlUrl, {
+  const res = await fetch(craftGqlUrl, {
     method: "POST",
     body: JSON.stringify({ query, variables, operationName }),
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${craftGqlToken}`,
     },
-  }).then(res => res.json())
+  })
+  return await res.json()
 }
 
 exports.onPreBootstrap = async (gatsbyApi, pluginOptions) => {

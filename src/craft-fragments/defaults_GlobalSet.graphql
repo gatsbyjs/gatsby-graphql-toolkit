@@ -1,5 +1,5 @@
 fragment defaults_GlobalSet on defaults_GlobalSet {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug
@@ -17,7 +17,7 @@ fragment defaults_GlobalSet on defaults_GlobalSet {
   metaImage {
     ... on AssetInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   metaDescription

@@ -1,5 +1,5 @@
 fragment blog_Asset on blog_Asset {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug

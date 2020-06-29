@@ -1,5 +1,5 @@
 fragment plugins_plugins_Entry on plugins_plugins_Entry {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug
@@ -21,7 +21,7 @@ fragment plugins_plugins_Entry on plugins_plugins_Entry {
   author {
     ... on UserInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   sectionId
@@ -33,13 +33,13 @@ fragment plugins_plugins_Entry on plugins_plugins_Entry {
   remoteChildren: children {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   remoteParent: parent {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   url
@@ -47,18 +47,18 @@ fragment plugins_plugins_Entry on plugins_plugins_Entry {
   icon {
     ... on AssetInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   composedIcon {
     ... on AssetInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   overviewBlocks {
     ... on overviewBlocks_lead_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -79,7 +79,7 @@ fragment plugins_plugins_Entry on plugins_plugins_Entry {
       text
     }
     ... on overviewBlocks_images_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -100,12 +100,12 @@ fragment plugins_plugins_Entry on plugins_plugins_Entry {
       images {
         ... on AssetInterface {
           remoteTypeName: __typename
-          remoteNodeId: id
+          remoteId: id
         }
       }
     }
     ... on overviewBlocks_text_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -128,7 +128,7 @@ fragment plugins_plugins_Entry on plugins_plugins_Entry {
   }
   features {
     ... on features_feature_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -151,7 +151,7 @@ fragment plugins_plugins_Entry on plugins_plugins_Entry {
       image {
         ... on AssetInterface {
           remoteTypeName: __typename
-          remoteNodeId: id
+          remoteId: id
         }
       }
     }

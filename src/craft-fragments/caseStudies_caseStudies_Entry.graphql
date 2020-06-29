@@ -1,5 +1,5 @@
 fragment caseStudies_caseStudies_Entry on caseStudies_caseStudies_Entry {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug
@@ -21,7 +21,7 @@ fragment caseStudies_caseStudies_Entry on caseStudies_caseStudies_Entry {
   author {
     ... on UserInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   sectionId
@@ -33,13 +33,13 @@ fragment caseStudies_caseStudies_Entry on caseStudies_caseStudies_Entry {
   remoteChildren: children {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   remoteParent: parent {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   url
@@ -48,13 +48,13 @@ fragment caseStudies_caseStudies_Entry on caseStudies_caseStudies_Entry {
   metaImage {
     ... on AssetInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   metaKeywords {
     ... on TagInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
 }

@@ -1,5 +1,5 @@
 fragment metaKeywords_Tag on metaKeywords_Tag {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug

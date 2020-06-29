@@ -1,5 +1,5 @@
 fragment blog_blog_Entry on blog_blog_Entry {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug
@@ -21,7 +21,7 @@ fragment blog_blog_Entry on blog_blog_Entry {
   author {
     ... on UserInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   sectionId
@@ -33,25 +33,25 @@ fragment blog_blog_Entry on blog_blog_Entry {
   remoteChildren: children {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   remoteParent: parent {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   url
   postImage {
     ... on AssetInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   postBlocks {
     ... on postBlocks_aside_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -72,7 +72,7 @@ fragment blog_blog_Entry on blog_blog_Entry {
       text
     }
     ... on postBlocks_images_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -93,13 +93,13 @@ fragment blog_blog_Entry on blog_blog_Entry {
       images {
         ... on AssetInterface {
           remoteTypeName: __typename
-          remoteNodeId: id
+          remoteId: id
         }
       }
       width
     }
     ... on postBlocks_table_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -133,7 +133,7 @@ fragment blog_blog_Entry on blog_blog_Entry {
       maxWidth
     }
     ... on postBlocks_chart_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -169,7 +169,7 @@ fragment blog_blog_Entry on blog_blog_Entry {
       caption
     }
     ... on postBlocks_text_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -190,7 +190,7 @@ fragment blog_blog_Entry on blog_blog_Entry {
       body
     }
     ... on postBlocks_code_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -213,7 +213,7 @@ fragment blog_blog_Entry on blog_blog_Entry {
       caption
     }
     ... on postBlocks_anchoredHeading_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -236,14 +236,9 @@ fragment blog_blog_Entry on blog_blog_Entry {
     }
   }
   postTags {
-    slug
-    title
-    uri
-    enabled
-    archived
     ... on TagInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   commentsEnabled
@@ -251,13 +246,13 @@ fragment blog_blog_Entry on blog_blog_Entry {
   metaImage {
     ... on AssetInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   metaKeywords {
     ... on TagInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
 }

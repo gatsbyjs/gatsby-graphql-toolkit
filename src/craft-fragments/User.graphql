@@ -1,5 +1,5 @@
 fragment User on User {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug
@@ -15,7 +15,7 @@ fragment User on User {
   photo {
     ... on AssetInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   friendlyName

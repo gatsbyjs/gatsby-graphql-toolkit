@@ -1,5 +1,5 @@
 fragment artwork_artwork_Entry on artwork_artwork_Entry {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug
@@ -21,7 +21,7 @@ fragment artwork_artwork_Entry on artwork_artwork_Entry {
   author {
     ... on UserInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   sectionId
@@ -33,20 +33,20 @@ fragment artwork_artwork_Entry on artwork_artwork_Entry {
   remoteChildren: children {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   remoteParent: parent {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   url
   leadText
   artworkSamples {
     ... on artworkSamples_sectionHeading_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -68,7 +68,7 @@ fragment artwork_artwork_Entry on artwork_artwork_Entry {
       subhead
     }
     ... on artworkSamples_image_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -89,19 +89,19 @@ fragment artwork_artwork_Entry on artwork_artwork_Entry {
       image {
         ... on AssetInterface {
           remoteTypeName: __typename
-          remoteNodeId: id
+          remoteId: id
         }
       }
       largeImage {
         ... on AssetInterface {
           remoteTypeName: __typename
-          remoteNodeId: id
+          remoteId: id
         }
       }
       caption
     }
     ... on artworkSamples_video_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -122,7 +122,7 @@ fragment artwork_artwork_Entry on artwork_artwork_Entry {
       video
     }
     ... on artworkSamples_custom_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -160,13 +160,13 @@ fragment artwork_artwork_Entry on artwork_artwork_Entry {
   metaImage {
     ... on AssetInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   metaKeywords {
     ... on TagInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
 }

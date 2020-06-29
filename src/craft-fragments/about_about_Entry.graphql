@@ -1,5 +1,5 @@
 fragment about_about_Entry on about_about_Entry {
-  remoteNodeId: id
+  remoteId: id
   uid
   title
   slug
@@ -19,10 +19,9 @@ fragment about_about_Entry on about_about_Entry {
   structureId
   authorId
   author {
-    friendlyName
-    ... on User {
+    ... on UserInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   sectionId
@@ -34,20 +33,20 @@ fragment about_about_Entry on about_about_Entry {
   remoteChildren: children {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   remoteParent: parent {
     ... on EntryInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   url
   leadText
   bios {
     ... on bios_featuredBio_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -68,7 +67,7 @@ fragment about_about_Entry on about_about_Entry {
       headshot {
         ... on AssetInterface {
           remoteTypeName: __typename
-          remoteNodeId: id
+          remoteId: id
         }
       }
       lead
@@ -83,7 +82,7 @@ fragment about_about_Entry on about_about_Entry {
       }
     }
     ... on bios_secondaryBio_BlockType {
-      remoteNodeId: id
+      remoteId: id
       uid
       title
       slug
@@ -104,7 +103,7 @@ fragment about_about_Entry on about_about_Entry {
       headshot {
         ... on AssetInterface {
           remoteTypeName: __typename
-          remoteNodeId: id
+          remoteId: id
         }
       }
       lead
@@ -115,13 +114,13 @@ fragment about_about_Entry on about_about_Entry {
   metaImage {
     ... on AssetInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
   metaKeywords {
     ... on TagInterface {
       remoteTypeName: __typename
-      remoteNodeId: id
+      remoteId: id
     }
   }
 }
