@@ -33,7 +33,7 @@ import { stripWrappingFragments } from "./ast-transformers/strip-wrapping-fragme
 import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
 
 export interface IArgumentValueResolver {
-  (field: GraphQLField<any, any>, parentType: GraphQLObjectType): {
+  (field: GraphQLField<any, any>, parentType: GraphQLObjectType): void | {
     [argName: string]: unknown
   }
 }
@@ -45,6 +45,9 @@ export interface IDefaultFragmentsConfig {
   defaultArgumentValues?: IArgumentValueResolver[]
 }
 
+/**
+ * Utility function that generates default fragments for every gatsby node type
+ */
 export function generateDefaultFragments(
   config: IDefaultFragmentsConfig
 ): Map<RemoteTypeName, string> {
@@ -270,7 +273,7 @@ function resolveFieldArguments(
   const defaultArgValueProviders = context.defaultArgumentValues ?? []
   const argValues = defaultArgValueProviders.reduce(
     (argValues, resolver) =>
-      Object.assign(argValues, resolver(field, parentType)),
+      Object.assign(argValues, resolver(field, parentType) ?? {}),
     Object.create(null)
   )
   return field.args

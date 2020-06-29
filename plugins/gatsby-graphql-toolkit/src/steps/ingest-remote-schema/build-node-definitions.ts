@@ -11,6 +11,11 @@ interface IBuildNodeDefinitionArgs {
   documents: Map<RemoteTypeName, DocumentNode>
 }
 
+/**
+ * Simple utility that merges user-defined node type configs with compiled
+ * queries for every node type, and produces a value suitable for
+ * `gatsbyNodeDefs` option of sourcing config.
+ */
 export function buildNodeDefinitions({
   gatsbyNodeTypes,
   documents,

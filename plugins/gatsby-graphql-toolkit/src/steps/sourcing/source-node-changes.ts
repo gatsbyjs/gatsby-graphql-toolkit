@@ -11,6 +11,12 @@ import { createNodes } from "./node-actions/create-nodes"
 import { deleteNodes } from "./node-actions/delete-nodes"
 import { createSourcingContext } from "./sourcing-context"
 
+/**
+ * Uses sourcing config and a list of node change events (delta) to
+ * delete nodes that no longer exist in the remote API and re-fetch
+ * individual nodes that were updated in the remote API
+ * since the last Gatsby build.
+ */
 export async function sourceNodeChanges(
   config: ISourcingConfig,
   delta: ISourceChanges

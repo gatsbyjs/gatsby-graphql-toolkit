@@ -3,6 +3,10 @@ import { createNodes } from "./node-actions/create-nodes"
 import { ISourcingConfig } from "../../types"
 import { createSourcingContext } from "./sourcing-context"
 
+/**
+ * Uses sourcing config to fetch all data from the remote GraphQL API
+ * and create gatsby nodes (using Gatsby `createNode` action)
+ */
 export async function sourceAllNodes(config: ISourcingConfig) {
   // Context instance passed to every nested call
   const context = createSourcingContext(config)

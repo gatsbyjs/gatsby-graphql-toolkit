@@ -6,6 +6,10 @@ import { createNodeIdTransform } from "../../config/node-id-transform"
 import { createTypeNameTransform } from "../../config/type-name-transform"
 import { defaultGatsbyFieldAliases } from "../../config/default-gatsby-field-aliases"
 
+/**
+ * Uses sourcing config to define Gatsby types explicitly
+ * (using Gatsby schema customization API).
+ */
 export async function createSchemaCustomization(config: ISourcingConfig) {
   const context = createSchemaCustomizationContext(config)
 

@@ -25,6 +25,11 @@ export async function introspectSchema(
   return introspectionResult.data as IntrospectionQuery
 }
 
+/**
+ * Executes GraphQL introspection query using provided query executor
+ * and creates an instance of GraphQL Schema using `buildClientSchema`
+ * utility from `graphql-js` package.
+ */
 export async function loadSchema(
   execute: IQueryExecutor
 ): Promise<GraphQLSchema> {

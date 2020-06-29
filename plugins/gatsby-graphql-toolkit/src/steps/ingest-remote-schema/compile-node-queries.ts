@@ -17,6 +17,10 @@ interface ICompileNodeDocumentsArgs {
   customFragments: Array<GraphQLSource>
 }
 
+/**
+ * Combines `queries` from node types config with any user-defined
+ * fragments and produces final queries used for node sourcing.
+ */
 export function compileNodeQueries({
   schema,
   gatsbyNodeTypes,
