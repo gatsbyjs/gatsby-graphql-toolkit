@@ -1,7 +1,7 @@
 import { GraphQLSchema, DocumentNode, parse } from "graphql"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
-import { compileNodeDocument } from "./compile-queries/compile-node-document"
-import { compileNodeFragments } from "./compile-queries/compile-node-fragments"
+import { compileNodeDocument } from "./compile-node-document"
+import { compileNodeFragments } from "./compile-node-fragments"
 import {
   IGatsbyNodeConfig,
   RemoteTypeName,

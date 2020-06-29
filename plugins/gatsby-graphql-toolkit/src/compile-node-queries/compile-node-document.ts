@@ -8,9 +8,9 @@ import {
   FragmentDefinitionNode,
   FieldNode,
 } from "graphql"
-import * as GraphQLAST from "../../utils/ast-nodes"
-import { addVariableDefinitions } from "../ast-transformers/add-variable-definitions"
-import { IGatsbyFieldAliases, IGatsbyNodeConfig } from "../../types"
+import * as GraphQLAST from "../utils/ast-nodes"
+import { addVariableDefinitions } from "./ast-transformers/add-variable-definitions"
+import { IGatsbyFieldAliases, IGatsbyNodeConfig } from "../types"
 
 interface ICompileNodeDocumentArgs {
   gatsbyNodeType: IGatsbyNodeConfig
