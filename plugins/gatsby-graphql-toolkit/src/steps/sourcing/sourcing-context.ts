@@ -12,17 +12,14 @@ export function createSourcingContext(
 
   const {
     gatsbyApi,
-    verbose,
     idTransform = createNodeIdTransform(gatsbyFieldAliases),
     typeNameTransform = createTypeNameTransform(config.gatsbyTypePrefix),
-    queryConcurrency = Number(process.env.GATSBY_CONCURRENT_DOWNLOAD) || 50,
   } = config
   const { reporter } = gatsbyApi
-  const format = string => formatLogMessage(string, { verbose })
+  const format = string => formatLogMessage(string)
 
   return {
     ...config,
-    queryConcurrency,
     gatsbyFieldAliases,
     idTransform,
     typeNameTransform,
