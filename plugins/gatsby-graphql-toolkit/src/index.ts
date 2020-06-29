@@ -5,6 +5,7 @@ export {
 } from "./config/query-executor"
 
 export { loadSchema, introspectSchema } from "./config/load-schema"
+export { buildNodeDefinitions } from "./config/build-node-definitions"
 
 export {
   PaginationAdapters,
@@ -13,7 +14,6 @@ export {
 } from "./config/pagination-adapters"
 
 export {
-  buildNodeDefinitions,
   compileNodeQueries,
   generateDefaultFragments,
 } from "./compile-node-queries"
