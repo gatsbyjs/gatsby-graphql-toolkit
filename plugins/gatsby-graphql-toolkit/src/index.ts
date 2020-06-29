@@ -16,7 +16,7 @@ export {
   buildNodeDefinitions,
   compileNodeQueries,
   generateDefaultFragments,
-} from "./ingest-remote-schema"
+} from "./compile-node-queries"
 
 export {
   fetchNodeList,
@@ -28,6 +28,6 @@ export {
   touchNodes,
   deleteNodes,
   createNodes,
-} from "./sourcing"
+} from "./source-nodes"
 
 export { createSchemaCustomization } from "./create-schema-customization"
