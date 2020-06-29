@@ -17,9 +17,6 @@ export {
   touchNodes,
   deleteNodes,
   createNodes,
-  paginate,
-  combinePages,
-  planPagination,
 } from "./steps/sourcing"
 
 export { createSchemaCustomization } from "./steps/create-schema-customization"

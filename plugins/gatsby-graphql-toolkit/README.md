@@ -41,9 +41,6 @@ by providing a set of convenience tools and conventions.
     + [fetchNodeList](#fetchnodelist)
     + [fetchNodesById](#fetchnodesbyid)
     + [fetchNodeById](#fetchnodebyid)
-    + [paginate](#paginate)
-    + [planPagination](#planpagination)
-    + [combinePages](#combinepages)
 
 ## Why not `gatsby-source-graphql`
 
@@ -568,9 +565,6 @@ given GraphQL query to fetch the next page of a field.
 #### fetchNodeList
 #### fetchNodesById
 #### fetchNodeById
-#### paginate
-#### planPagination
-#### combinePages
 
 ## TODO:
 
