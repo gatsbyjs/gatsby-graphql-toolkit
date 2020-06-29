@@ -231,8 +231,6 @@ But instead of generating them every time, you could have chosen the following w
  2. Allow developers to edit those fragments in IDE (e.g., to remove fields they don't need, add fields with arguments, etc.)
  3. Load modified fragments from the file system on each run
 
-This step leaves you enough space in organizing sourcing for your specific case.
-
 For example let's modify the `Author` fragment to fetch excerpts of author posts:
 
 ```graphql
@@ -249,7 +247,9 @@ We will see how this change affects sourcing queries in the next step.
 
 ### 4. Compile sourcing queries
 
-In this step we combine node configurations with custom fragments and compile final queries for node sourcing:
+In this step we combine node configurations ([step 2](#2-configure-gatsby-node-types))
+with custom fragments ([step 3](#3-define-fields-to-be-fetched-using-graphql-fragments))
+and compile final queries for node sourcing:
 
 ```js
 const documents = compileNodeQueries({
@@ -526,13 +526,14 @@ They will be passed to the `NODE_POST` query as variables.
 implement pagination differently. The toolkit abstracts those differences away by
 introducing a concept of "pagination adapter".
 
-Two most common adapters supported out of the box: `LimitOffset` and `RelayForward`.
+Two most common adapters supported out of the box: `LimitOffset` and `RelayForward`
+(for [Relay Connections specification][10]).
 But you can also [define a custom one](#custom-pagination-adapter).
 
 The toolkit selects which adapter to use based on variable names used in the query:
 
 - `LimitOffset`: when it sees `$limit` and `$offset` variables
-- `RelayForward`: when it sees `$before` and `$start` variables
+- `RelayForward`: when it sees `$first` and `$after` variables
 
 In a nutshell pagination adapter simply "knows" which variable values to use for the
 given GraphQL query to fetch the next page of a field.
@@ -594,3 +595,4 @@ result as `AsyncIterator` of your nodes.
 [7]: https://graphql.org/learn/pagination/
 [8]: https://graphql.org/learn/queries/#meta-fields
 [9]: https://www.gatsbyjs.org/docs/actions/#createNode
+[10]: https://relay.dev/graphql/connections.htm
