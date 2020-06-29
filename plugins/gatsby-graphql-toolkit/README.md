@@ -91,6 +91,7 @@ type Query {
 ```
 
 How do we source data from this GraphQL API using the toolkit?
+Let's look at the full example and then walk through it step-by-step.
 
 ```js
 async function createSourcingConfig(gatsbyApi) {
@@ -538,7 +539,7 @@ In a nutshell pagination adapter simply "knows" which variable values to use for
 given GraphQL query to fetch the next page of a field.
 
 This way the toolkit can paginate your queries automatically and express the
-result as `AsyncIterator` of your nodes.
+result as `AsyncIterator` of your nodes for convenience and efficiency.
 
 ## Configuration
 
@@ -565,6 +566,10 @@ interface IGatsbyNodeDefinition {
   nodeQueryVariables: (id: IRemoteId) => object
 }
 ```
+
+Gatsby node definition is constructed from the node type config ([step 2](#2-configure-gatsby-node-types))
+and compiled queries ([step 4](#4-compile-sourcing-queries)) using [`buildNodeDefinitions`](#buildnodedefinitions)
+utility.
 
 ### Gatsby field aliases
 
@@ -628,7 +633,12 @@ interface ISourcingConfig {
   // ...
   paginationAdapters?: IPaginationAdapter<any, any>[]
 }
+```
 
+You can add a new (or override existing) adapters by providing you own implementation
+conforming to this interface:
+
+```ts
 interface IPageInfo {
   variables: { [name: string]: unknown }
   hasNextPage: boolean
@@ -643,9 +653,6 @@ interface IPaginationAdapter<TPage, TItem> {
   getItems(page: TPage): Array<TItem | null>
 }
 ```
-
-You can add a new (or override existing) adapters by providing you own implementation
-conforming to the interface above.
 
 Check out the `src/config/pagination-adapters` folder for examples.
 
