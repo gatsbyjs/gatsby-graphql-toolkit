@@ -20,7 +20,7 @@ export async function addPaginatedFields(
   const variables = def.nodeQueryVariables(remoteId)
 
   for (const fieldQuery of nodeFieldQueries) {
-    const plan = planPagination(def.document, fieldQuery, variables)
+    const plan = planPagination(context, def.document, fieldQuery, variables)
     const pages = paginate(context, plan)
     const result = await combinePages(pages, plan)
 

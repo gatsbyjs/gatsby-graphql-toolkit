@@ -2,6 +2,12 @@ export { createDefaultQueryExecutor, withQueue } from "./config/query-executor"
 export { loadSchema, introspectSchema } from "./config/load-schema"
 
 export {
+  PaginationAdapters,
+  LimitOffset,
+  RelayForward,
+} from "./config/pagination-adapters"
+
+export {
   buildNodeDefinitions,
   compileNodeQueries,
   generateDefaultFragments,

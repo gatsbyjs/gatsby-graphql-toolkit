@@ -1,7 +1,7 @@
 import { DEFAULT_PAGE_SIZE } from "../../constants"
 import { IPaginationAdapter } from "./types"
 
-interface IRelayPage {
+export interface IRelayPage {
   edges: { cursor: string; node: object | null }[]
   pageInfo: { hasNextPage: boolean }
 }

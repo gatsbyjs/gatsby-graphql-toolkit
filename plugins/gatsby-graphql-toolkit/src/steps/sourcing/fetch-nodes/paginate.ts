@@ -96,11 +96,16 @@ export async function combinePages(
 }
 
 export function planPagination(
+  context: ISourcingContext,
   document: DocumentNode,
   operationName: string,
   variables: object = {}
 ): IPaginationPlan {
-  const adapter = resolvePaginationAdapter(document, operationName)
+  const adapter = resolvePaginationAdapter(
+    document,
+    operationName,
+    context.paginationAdapters
+  )
   const fieldPath = findPaginatedFieldPath(document, operationName, adapter)
   const fieldName = fieldPath[fieldPath.length - 1]
 

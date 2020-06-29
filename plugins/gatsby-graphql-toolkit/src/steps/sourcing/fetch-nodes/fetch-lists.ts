@@ -43,7 +43,12 @@ export async function* fetchNodeList(
 ): AsyncIterable<IRemoteNode> {
   const typeNameField = context.gatsbyFieldAliases["__typename"]
   const nodeDefinition = getGatsbyNodeDefinition(context, remoteTypeName)
-  const plan = planPagination(nodeDefinition.document, listOperationName)
+
+  const plan = planPagination(
+    context,
+    nodeDefinition.document,
+    listOperationName
+  )
 
   for await (const page of paginate(context, plan)) {
     const partialNodes = plan.adapter.getItems(page.fieldValue)

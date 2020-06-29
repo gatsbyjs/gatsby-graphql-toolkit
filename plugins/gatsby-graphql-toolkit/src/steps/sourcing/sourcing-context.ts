@@ -3,6 +3,7 @@ import { defaultGatsbyFieldAliases } from "../../config/default-gatsby-field-ali
 import { createNodeIdTransform } from "../../config/node-id-transform"
 import { createTypeNameTransform } from "../../config/type-name-transform"
 import { formatLogMessage } from "../../utils/format-log-message"
+import { PaginationAdapters } from "../../config/pagination-adapters"
 
 export function createSourcingContext(
   config: ISourcingConfig
@@ -14,6 +15,7 @@ export function createSourcingContext(
     gatsbyApi,
     idTransform = createNodeIdTransform(gatsbyFieldAliases),
     typeNameTransform = createTypeNameTransform(config.gatsbyTypePrefix),
+    paginationAdapters = PaginationAdapters,
   } = config
   const { reporter } = gatsbyApi
   const format = string => formatLogMessage(string)
@@ -23,6 +25,7 @@ export function createSourcingContext(
     gatsbyFieldAliases,
     idTransform,
     typeNameTransform,
+    paginationAdapters,
     formatLogMessage: format,
     fetchingActivity: reporter.activityTimer(format(`fetching nodes`)),
     creatingActivity: reporter.activityTimer(format(`creating nodes`)),

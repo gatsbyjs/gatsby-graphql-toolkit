@@ -9,6 +9,7 @@ import {
   FragmentDefinitionNode,
   Source,
 } from "graphql"
+import { IPaginationAdapter } from "./config/pagination-adapters"
 
 export type RemoteTypeName = string
 export type RemoteFieldAlias = string
@@ -39,6 +40,7 @@ export interface ISourcingConfig {
   gatsbyFieldAliases?: IGatsbyFieldAliases
   idTransform?: INodeIdTransform
   typeNameTransform?: ITypeNameTransform
+  paginationAdapters?: IPaginationAdapter<any, any>[]
 }
 
 export type GraphQLSource = string | Source
@@ -119,6 +121,7 @@ export interface ISourcingContext extends ISourcingConfig {
   idTransform: INodeIdTransform
   gatsbyFieldAliases: IGatsbyFieldAliases
   typeNameTransform: ITypeNameTransform
+  paginationAdapters: IPaginationAdapter<any, any>[]
   formatLogMessage: (string) => string
   fetchingActivity: ActivityTracker
   creatingActivity: ActivityTracker
