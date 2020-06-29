@@ -62,8 +62,8 @@ This new toolkit should solve all those issues and implement correct node sourci
 
 ## How it works
 
-Let's imagine we have a straightforward GraphQL API located at `https://www.example.com/graphql`.
-This example API has the following schema:
+Let's imagine we have a GraphQL API located at `https://www.example.com/graphql`.
+This example API has the following straightforward schema:
 
 ```graphql
 type Post {
