@@ -2,7 +2,7 @@ import PQueue, { Options as PQueueOptions } from "p-queue"
 import fetch, { RequestInit as FetchOptions } from "node-fetch"
 import { IQueryExecutionArgs, IQueryExecutor } from "../types"
 
-export function createNetworkExecutor(
+export function createNetworkQueryExecutor(
   uri: string,
   fetchOptions: FetchOptions = {}
 ): IQueryExecutor {
@@ -20,7 +20,7 @@ export function createNetworkExecutor(
   }
 }
 
-export function withQueue(
+export function wrapQueryExecutorWithQueue(
   executor: IQueryExecutor,
   queueOptions: PQueueOptions<any, any>
 ): IQueryExecutor {
@@ -36,7 +36,7 @@ export function createDefaultQueryExecutor(
   fetchOptions: FetchOptions,
   queueOptions: PQueueOptions<any, any> = { concurrency: 5 }
 ): IQueryExecutor {
-  const executor = createNetworkExecutor(uri, fetchOptions)
+  const executor = createNetworkQueryExecutor(uri, fetchOptions)
 
-  return withQueue(executor, queueOptions)
+  return wrapQueryExecutorWithQueue(executor, queueOptions)
 }

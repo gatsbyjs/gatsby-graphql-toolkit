@@ -19,6 +19,7 @@ by providing a set of convenience tools and conventions.
 - [Sourcing changes (delta)](#sourcing-changes-delta)
 - [Automatic Pagination Explained](#automatic-pagination-explained)
 - [Configuration](#configuration)
+  * [Query executor](#query-executor)
   * [Gatsby field aliases](#gatsby-field-aliases)
   * [Type name transformer](#type-name-transformer)
   * [Custom Pagination Adapter](#custom-pagination-adapter)
@@ -547,6 +548,8 @@ You can adjust some aspects of sourcing and schema customization by providing a 
 object of the following structure (typescript flavour):
 
 ```ts
+type RemoteTypeName = string
+
 interface ISourcingConfig {
   gatsbyApi: NodePluginArgs
   schema: GraphQLSchema
@@ -570,6 +573,63 @@ interface IGatsbyNodeDefinition {
 Gatsby node definition is constructed from the node type config ([step 2](#2-configure-gatsby-node-types))
 and compiled queries ([step 4](#4-compile-sourcing-queries)) using [`buildNodeDefinitions`](#buildnodedefinitions)
 utility.
+
+### Query executor
+
+You can control how the toolkit executes GraphQL queries by providing a custom `execute`
+function:
+
+```ts
+interface ISourcingConfig {
+  // ...
+  execute: IQueryExecutor
+  // ...
+}
+
+export interface IQueryExecutor {
+  (args: IQueryExecutionArgs): Promise<ExecutionResult>
+}
+
+export interface IQueryExecutionArgs {
+  query: string
+  operationName: string
+  variables: object
+  document?: DocumentNode
+}
+
+interface ExecutionResult {
+  errors?: ReadonlyArray<GraphQLError>;
+  data?: object;
+}
+```
+
+It can be as simple as this:
+
+```js
+const fetch = require("node-fetch")
+
+async function execute({ operationName, query, variables = {} }) {
+  const res = await fetch(`https://www.example.com/graphql`, {
+    method: "POST",
+    body: JSON.stringify({ query, variables, operationName }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+  return await res.json()
+}
+
+const config = {
+  // ... other options
+  execute,
+}
+```
+
+The default implementation [`createDefaultQueryExecutor`](#createdefaultqueryexecutor) is very similar,
+except that it also controls query concurrency using an excellent [`p-queue`][11] library.
+
+Use [`wrapQueryExecutorWithQueue`](#wrapqueryexecutorwithqueue) to re-use concurrency logic for
+your custom executor.
 
 ### Gatsby field aliases
 
@@ -635,7 +695,7 @@ interface ISourcingConfig {
 }
 ```
 
-You can add a new (or override existing) adapters by providing you own implementation
+You can add a new (or override existing) adapters by providing you own implementations
 conforming to this interface:
 
 ```ts
@@ -658,7 +718,7 @@ Check out the `src/config/pagination-adapters` folder for examples.
 
 > Note: when setting `paginationAdapters` option you override built-in adapters completely
 > So if you want to be able to still use one of the existing adapters, pass them along with
-> your custom adapters
+> your custom adapters:
 
 ```js
 const { PaginationAdapters } = require('gatsby-graphql-source-toolkit')
@@ -666,16 +726,19 @@ const MyCustomAdapter = {
   // Your implementation
 }
 const config = {
+  // ... other options
   paginationAdapters: PaginationAdapters.concat(MyCustomAdapter)
 }
 ```
-
-## Debugging
 
 ## Tools Reference
 
 ### Configuration Tools
 #### createDefaultQueryExecutor
+#### wrapQueryExecutorWithQueue
+
+Creates a function 
+
 #### loadSchema
 #### buildNodeDefinitions
 
@@ -715,3 +778,4 @@ const config = {
 [8]: https://graphql.org/learn/queries/#meta-fields
 [9]: https://www.gatsbyjs.org/docs/actions/#createNode
 [10]: https://relay.dev/graphql/connections.htm
+[11]: https://github.com/sindresorhus/p-queue

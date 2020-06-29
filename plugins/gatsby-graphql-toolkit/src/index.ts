@@ -1,4 +1,9 @@
-export { createDefaultQueryExecutor, withQueue } from "./config/query-executor"
+export {
+  createDefaultQueryExecutor,
+  createNetworkQueryExecutor,
+  wrapQueryExecutorWithQueue,
+} from "./config/query-executor"
+
 export { loadSchema, introspectSchema } from "./config/load-schema"
 
 export {
