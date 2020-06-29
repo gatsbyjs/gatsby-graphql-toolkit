@@ -5,6 +5,46 @@ The toolkit is designed to simplify data sourcing from the remote GraphQL API in
 Note: this is **not** a source plugin by itself, but it helps [writing custom GraphQL source plugins][0]
 by providing a set of convenience tools and conventions.
 
+## Table of contents
+
+- [Why not `gatsby-source-graphql`](#why-not-gatsby-source-graphql)
+- [Features](#features)
+- [How it works](#how-it-works)
+  * [1. Setup remote schema](#1-setup-remote-schema)
+  * [2. Configure Gatsby node types](#2-configure-gatsby-node-types)
+  * [3. Define fields to be fetched (using GraphQL fragments)](#3-define-fields-to-be-fetched-using-graphql-fragments)
+  * [4. Compile sourcing queries](#4-compile-sourcing-queries)
+  * [5. Add explicit types to gatsby schema](#5-add-explicit-types-to-gatsby-schema)
+  * [6. Source nodes](#6-source-nodes)
+- [Pagination and sourcing](#pagination-and-sourcing)
+- [Sourcing changes (delta)](#sourcing-changes-delta)
+- [Configuration](#configuration)
+  * [Source Query Conventions](#source-query-conventions)
+  * [Gatsby field aliases](#gatsby-field-aliases)
+  * [ID transformers](#id-transformers)
+  * [Custom Pagination Adapter](#custom-pagination-adapter)
+- [Debugging](#debugging)
+- [Tools Reference](#tools-reference)
+  * [Configuration Tools](#configuration-tools)
+    + [createDefaultQueryExecutor](#createdefaultqueryexecutor)
+    + [loadSchema](#loadschema)
+    + [buildNodeDefinitions](#buildnodedefinitions)
+  * [Query compilation tools](#query-compilation-tools)
+    + [generateDefaultFragments](#generatedefaultfragments)
+    + [compileNodeQueries](#compilenodequeries)
+  * [Schema customization tools](#schema-customization-tools)
+    + [createSchemaCustomization](#createschemacustomization)
+  * [Source nodes tools](#source-nodes-tools)
+    + [sourceAllNodes](#sourceallnodes)
+    + [sourceNodeChanges](#sourcenodechanges)
+    + [fetchAllNodes](#fetchallnodes)
+    + [fetchNodeList](#fetchnodelist)
+    + [fetchNodesById](#fetchnodesbyid)
+    + [fetchNodeById](#fetchnodebyid)
+    + [paginate](#paginate)
+    + [planPagination](#planpagination)
+    + [combinePages](#combinepages)
+
 ## Why not `gatsby-source-graphql`
 
 Historically Gatsby suggested `gatsby-source-graphql` plugin to consume data from remote GraphQL APIs.
@@ -133,7 +173,7 @@ const gatsbyNodeTypes = [
     remoteIdFields: [`__typename`, `id`],
     queries: `query LIST_POSTS { posts(limit: $limit, offset: $offset) }`,
   },
-  // ... other nodes
+  // ... other node types
 ]
 ```
 
@@ -321,7 +361,7 @@ and adds them to Gatsby node type with slight changes:
 In general the following field definition: `field(arg: Int!)` can't be directly copied
 from the remote schema unless we know all usages of `arg` during Gatsby build.
 
-To workaround this problem we require you to provide those usages in fragments as
+To workaround this problem we ask you to provide those usages in fragments as
 aliased fields:
 
 ```graphql
@@ -340,7 +380,7 @@ them in Gatsby queries.
 ### 6. Source nodes
 
 Here we execute all the queries compiled in [step 4](#4-compile-sourcing-queries) against the remote GraphQL API
-and transform results to Gatsby nodes using [createNode API](https://www.gatsbyjs.org/docs/actions/#createNode).
+and transform results to Gatsby nodes using [createNode API][9].
 
 Let's take another look at one of the queries:
 
@@ -390,7 +430,93 @@ Let's assume we've received a GraphQL result that looks like this:
 ```
 
 The toolkit will create a single Gatsby node of type `ExampleAuthor` out of it as-is.
-The only difference is that it will add `id` field and required Gatsby `internal` fields.
+The only difference is that it will add `id` field and required Gatsby `internal` fields
+as described [in docs][9].
+
+
+## Sourcing changes (delta)
+
+Delta sourcing allows you to keep data sourced in a previous build and fetch only what
+has changed since then.
+
+> **Note:** it is only possible if your API allows you to receive
+> the list of nodes changed since the last build.
+
+Let's see how it works on [our original example](#how-it-works). First we need to
+modify the config of Gatsby node types from the [step 2](#2-configure-gatsby-node-types)
+to support individual node re-fetching:
+
+```diff
+const gatsbyNodeTypes = [
+  {
+    remoteTypeName: `Post`,
+    remoteIdFields: [`__typename`, `id`],
+-   queries: `query LIST_POSTS { posts(limit: $limit, offset: $offset) }`,
++   queries: `
++       query LIST_POSTS { posts(limit: $limit, offset: $offset) }
++       query NODE_POST { post(id: $id) }
++   `,
+  },
+  // ... other node types
+]
+```
+
+When compiling queries on [step 4](#4-compile-sourcing-queries) the toolkit will spread
+all of our fragments in both queries, so the shape of the node will be identical when
+executing `LIST_POSTS` or `NODE_POST`.
+
+Next, let's modify `sourceNodes` in `gatsby-node.js`:
+
+```js
+exports.sourceNodes = async (gatsbyApi, pluginOptions) => {
+  const lastBuildTime = await gatsbyApi.cache.get(`LAST_BUILD_TIME`)
+  const config = await createSourcingConfig(gatsbyApi)
+  await createSchemaCustomization(config)
+
+  if (lastBuildTime) {
+    // Source delta changes
+    const nodeEvents = await fetchNodeChanges(lastBuildTime)
+    await sourceNodeChanges(config, { nodeEvents })
+  } else {
+    // Otherwise source everything from scratch as usual
+    await sourceAllNodes(config)
+  }
+  await gatsbyApi.cache.set(`LAST_BUILD_TIME`, Date.now())
+}
+```
+
+The part you will have to implement yourself here is `fetchNodeChanges`.
+It should fetch changes from your API and return a list of events in a format the toolkit
+understands:
+
+```js
+async function fetchNodeChanges(lastBuildTime) {
+  // Here we simply return the list of changes but in the real project you will
+  // have to fetch changes from your API and transform them to this format:
+  return [
+    {
+      eventName: "DELETE",
+      remoteTypeName: "Post",
+      remoteId: { __typename: "Post", id: "1" },
+    },
+    {
+      eventName: "UPDATE",
+      remoteTypeName: "Post",
+      remoteId: { __typename: "Post", id: "2" },
+    },
+  ]
+}
+```
+
+As you can see two kinds of events supported (and thus must be tracked by your backend): `DELETE` and `UPDATE`.
+
+The toolkit only cares about remote IDs of the nodes that has changed:
+ - for `UPDATE` event it will re-fetch nodes individually using `NODE_POST` query we defined above
+ - for `DELETE` event it will delete corresponding Gatsby nodes (without further requests to your API).
+
+The `remoteId` field here must contain values for **all** of the `remoteIdFields`
+defined in gatsby node config above (in this example: `__typename` and `id`).
+They will be passed to `NODE_POST` query as variables.
 
 ## Pagination and sourcing
 
@@ -409,8 +535,6 @@ The toolkit selects which adapter to use based on variable names used in the que
 In a nutshell pagination adapter simply "knows" which variable values to use for the
 given GraphQL query to fetch the next page of a field.
 
-## Sourcing changes (delta)
-
 ## Configuration
 
 ### Source Query Conventions
@@ -423,16 +547,30 @@ given GraphQL query to fetch the next page of a field.
 
 ## Debugging
 
-## Configuration Tools
+## Tools Reference
 
+### Configuration Tools
 #### createDefaultQueryExecutor
 #### loadSchema
+#### buildNodeDefinitions
 
-## Query compilation tools
-
+### Query compilation tools
 #### generateDefaultFragments
-
 #### compileNodeQueries
+
+### Schema customization tools
+#### createSchemaCustomization
+
+### Source nodes tools
+#### sourceAllNodes
+#### sourceNodeChanges
+#### fetchAllNodes
+#### fetchNodeList
+#### fetchNodesById
+#### fetchNodeById
+#### paginate
+#### planPagination
+#### combinePages
 
 ## TODO:
 
@@ -453,3 +591,4 @@ given GraphQL query to fetch the next page of a field.
 [6]: https://www.gatsbyjs.org/docs/schema-customization/
 [7]: https://graphql.org/learn/pagination/
 [8]: https://graphql.org/learn/queries/#meta-fields
+[9]: https://www.gatsbyjs.org/docs/actions/#createNode
