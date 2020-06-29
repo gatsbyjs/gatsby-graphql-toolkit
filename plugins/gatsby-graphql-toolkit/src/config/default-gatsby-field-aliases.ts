@@ -2,7 +2,7 @@ import { IGatsbyFieldAliases } from "../types"
 
 export const defaultGatsbyFieldAliases: IGatsbyFieldAliases = {
   __typename: "remoteTypeName",
-  id: "remoteNodeId",
+  id: "remoteId",
   internal: "remoteInternal",
   children: "remoteChildren",
   parent: "remoteParent",

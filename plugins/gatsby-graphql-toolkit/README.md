@@ -589,7 +589,7 @@ Default value is:
 ```js
 const defaultGatsbyFieldAliases = {
   __typename: "remoteTypeName",
-  id: "remoteNodeId",
+  id: "remoteId",
   internal: "remoteInternal",
   children: "remoteChildren",
   parent: "remoteParent",
