@@ -176,7 +176,7 @@ Settings explained:
 
 - `remoteTypeName` is utilized to:
 
-  - Build gatsby node type name as follows: `${gatsbyTypePrefix}${remoteTypeName}` ([customizable](TODOC)).
+  - Build gatsby node type name as follows: `${gatsbyTypePrefix}${remoteTypeName}` ([customizable](#type-name-transformer)).
   - Discover and resolve relationships between node types in the schema.
 
 - `remoteIdFields` are necessary to:
