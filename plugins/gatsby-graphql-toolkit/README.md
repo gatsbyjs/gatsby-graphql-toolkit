@@ -19,9 +19,8 @@ by providing a set of convenience tools and conventions.
 - [Sourcing changes (delta)](#sourcing-changes-delta)
 - [Automatic Pagination Explained](#automatic-pagination-explained)
 - [Configuration](#configuration)
-  * [Source Query Conventions](#source-query-conventions)
   * [Gatsby field aliases](#gatsby-field-aliases)
-  * [ID transformers](#id-transformers)
+  * [Type name transformer](#type-name-transformer)
   * [Custom Pagination Adapter](#custom-pagination-adapter)
 - [Debugging](#debugging)
 - [Tools Reference](#tools-reference)
@@ -543,11 +542,83 @@ result as `AsyncIterator` of your nodes.
 
 ## Configuration
 
-### Source Query Conventions
+You can adjust some aspects of sourcing and schema customization by providing a config
+object of the following structure (typescript flavour):
+
+```ts
+interface ISourcingConfig {
+  gatsbyApi: NodePluginArgs
+  schema: GraphQLSchema
+  gatsbyNodeDefs: Map<RemoteTypeName, IGatsbyNodeDefinition>
+  gatsbyTypePrefix: string
+  execute: IQueryExecutor
+
+  gatsbyFieldAliases?: { [field: string]: string }
+  typeNameTransform?: ITypeNameTransform
+}
+
+interface IGatsbyNodeDefinition {
+  remoteTypeName: RemoteTypeName
+  remoteIdFields: string[]
+  document: DocumentNode
+  nodeQueryVariables: (id: IRemoteId) => object
+}
+```
 
 ### Gatsby field aliases
 
-### ID transformers
+```ts
+interface ISourcingConfig {
+  // ...
+  gatsbyFieldAliases?: { [field: string]: string }
+  // ...
+}
+```
+
+This is just a simple object that defines which aliases to use for internal
+Gatsby fields when compiling queries ([step 4](#4-compile-sourcing-queries)).
+
+Default value is:
+
+```js
+const defaultGatsbyFieldAliases = {
+  __typename: "remoteTypeName",
+  id: "remoteNodeId",
+  internal: "remoteInternal",
+  children: "remoteChildren",
+  parent: "remoteParent",
+}
+```
+
+### Type name transformer
+
+The toolkit must transform type names from the remote schema to Gatsby schema:
+
+```ts
+interface ISourcingConfig {
+  // ...
+  gatsbyTypePrefix: string
+  typeNameTransform?: ITypeNameTransform
+}
+
+export interface ITypeNameTransform {
+  toGatsbyTypeName: (remoteTypeName: string) => string
+  toRemoteTypeName: (gatsbyTypeName: string) => string
+}
+```
+
+Default implementation uses `gatsbyTypePrefix` option and is as simple as:
+
+```js
+function createTypeNameTransform(prefix) {
+  return {
+    toGatsbyTypeName: remoteTypeName => `${prefix}${remoteTypeName}`,
+    toRemoteTypeName: gatsbyTypeName => gatsbyTypeName.substr(prefix.length),
+  }
+}
+```
+
+> Note: the toolkit uses this transformer to convert EVERY type name, not only node types.
 
 ### Custom Pagination Adapter
 
