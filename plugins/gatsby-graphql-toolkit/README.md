@@ -555,6 +555,7 @@ interface ISourcingConfig {
 
   gatsbyFieldAliases?: { [field: string]: string }
   typeNameTransform?: ITypeNameTransform
+  paginationAdapters?: IPaginationAdapter<any, any>[]
 }
 
 interface IGatsbyNodeDefinition {
@@ -621,6 +622,46 @@ function createTypeNameTransform(prefix) {
 > Note: the toolkit uses this transformer to convert EVERY type name, not only node types.
 
 ### Custom Pagination Adapter
+
+```ts
+interface ISourcingConfig {
+  // ...
+  paginationAdapters?: IPaginationAdapter<any, any>[]
+}
+
+interface IPageInfo {
+  variables: { [name: string]: unknown }
+  hasNextPage: boolean
+}
+
+interface IPaginationAdapter<TPage, TItem> {
+  name: string
+  expectedVariableNames: string[]
+  start(): IPageInfo
+  next(current: IPageInfo, page: TPage): IPageInfo
+  concat(acc: TPage, page: TPage): TPage
+  getItems(page: TPage): Array<TItem | null>
+}
+```
+
+You can add a new (or override existing) adapters by providing you own implementation
+conforming to the interface above.
+
+Check out the `src/config/pagination-adapters` folder for examples.
+
+> Note: when setting `paginationAdapters` option you override built-in adapters completely
+> So if you want to be able to still use one of the existing adapters, pass them along with
+> your custom adapters
+
+```js
+const { PaginationAdapters } = require('gatsby-graphql-source-toolkit')
+const MyCustomAdapter = {
+  // Your implementation
+}
+const config = {
+  paginationAdapters: PaginationAdapters.concat(MyCustomAdapter)
+}
+```
 
 ## Debugging
 
