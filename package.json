@@ -24,6 +24,11 @@
     "node-fetch": "^2.6.0",
     "p-queue": "^6.4.0"
   },
+  "devDependencies": {
+    "gatsby": "^2.23.12",
+    "react-dom": "^16.13.1",
+    "graphql": "^14.6.0"
+  },
   "peerDependencies": {
     "gatsby": "^2.0.15",
     "graphql": "^14.0.0 || ^15.0.0"
