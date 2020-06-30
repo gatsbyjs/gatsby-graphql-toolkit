@@ -29,12 +29,12 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "gatsby build",
-    "develop": "gatsby develop",
-    "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
+    "build": "../../node_modules/.bin/gatsby build",
+    "develop": "../../node_modules/.bin/gatsby develop",
+    "format": "../../node_modules/.bin/prettier --write \\\"**/*.{js,jsx,json,md}\\\"",
     "start": "npm run develop",
-    "serve": "gatsby serve",
-    "clean": "gatsby clean",
+    "serve": "../../node_modules/.bin/gatsby serve",
+    "clean": "../../node_modules/.bin/gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
   },
   "repository": {

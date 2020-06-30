@@ -16,7 +16,7 @@ const {
   buildNodeDefinitions,
   wrapQueryExecutorWithQueue,
   loadSchema,
-} = require("./plugins/gatsby-graphql-toolkit/dist")
+} = require("../../plugins/gatsby-graphql-toolkit/dist")
 
 const craftGqlToken = process.env.CRAFTGQL_TOKEN
 const craftGqlUrl = process.env.CRAFTGQL_URL
