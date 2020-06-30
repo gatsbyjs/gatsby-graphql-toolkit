@@ -12,13 +12,10 @@ export function createSourcingContext(
     config.gatsbyFieldAliases ?? defaultGatsbyFieldAliases
 
   const {
-    gatsbyApi,
     idTransform = createNodeIdTransform(gatsbyFieldAliases),
     typeNameTransform = createTypeNameTransform(config.gatsbyTypePrefix),
     paginationAdapters = PaginationAdapters,
   } = config
-  const { reporter } = gatsbyApi
-  const format = string => formatLogMessage(string)
 
   return {
     ...config,
@@ -26,8 +23,6 @@ export function createSourcingContext(
     idTransform,
     typeNameTransform,
     paginationAdapters,
-    formatLogMessage: format,
-    fetchingActivity: reporter.activityTimer(format(`fetching nodes`)),
-    creatingActivity: reporter.activityTimer(format(`creating nodes`)),
+    formatLogMessage,
   }
 }

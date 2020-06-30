@@ -1,4 +1,4 @@
-import { ActivityTracker, Node, NodePluginArgs } from "gatsby"
+import { Node, NodePluginArgs } from "gatsby"
 import { ComposeFieldConfig } from "graphql-compose"
 import {
   DocumentNode,
@@ -123,8 +123,6 @@ export interface ISourcingContext extends ISourcingConfig {
   typeNameTransform: ITypeNameTransform
   paginationAdapters: IPaginationAdapter<any, any>[]
   formatLogMessage: (string) => string
-  fetchingActivity: ActivityTracker
-  creatingActivity: ActivityTracker
 }
 
 export interface ISchemaCustomizationContext extends ISourcingConfig {
