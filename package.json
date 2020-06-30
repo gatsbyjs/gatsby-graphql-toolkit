@@ -1,7 +1,9 @@
 {
-  "name": "gatsby-graphql-toolkit",
+  "name": "gatsby-graphql-source-toolkit",
   "version": "1.0.0",
-  "description": "A minimal boilerplate for the essential files Gatsby looks for in a plugin",
+  "description": "The toolkit designed to simplify data sourcing from a remote GraphQL API into Gatsby.",
+  "author": "Vladimir Razuvaev <vladimir@gatsbyjs.com>",
+  "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,14 +16,16 @@
   ],
   "keywords": [
     "gatsby",
-    "gatsby-plugin"
+    "graphql"
   ],
-  "author": "Vladimir Razuvaev <vladimir@gatsbyjs.com>",
-  "license": "MIT",
   "dependencies": {
     "@types/node-fetch": "^2.5.7",
     "lodash": "^4.17.15",
     "node-fetch": "^2.6.0",
     "p-queue": "^6.4.0"
+  },
+  "peerDependencies": {
+    "gatsby": "^2.0.15",
+    "graphql": "^14.0.0 || ^15.0.0"
   }
 }
