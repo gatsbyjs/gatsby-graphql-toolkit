@@ -315,6 +315,10 @@ Note how the `excerpt` field has been moved from `CustomizedAuthorFragment` to t
 Also, note the toolkit automatically adds field aliases for reserved gatsby fields
 (`id`, `internal`, `parent`, `children` and [`__typename` meta field][10])
 
+**Why?** This way we achieve data normalization in Gatsby. All the data belonging
+to a node is moved to its specific queries. Queries of other nodes _reference_
+nodes of other types (via id fields).
+
 You can write these documents somewhere to disk to ease debugging
 (generated queries are static and could be used manually to replicate the error).
 
