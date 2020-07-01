@@ -122,7 +122,7 @@ export interface ISourcingContext extends ISourcingConfig {
   gatsbyFieldAliases: IGatsbyFieldAliases
   typeNameTransform: ITypeNameTransform
   paginationAdapters: IPaginationAdapter<any, any>[]
-  formatLogMessage: (string) => string
+  formatLogMessage: (message: string) => string
 }
 
 export interface ISchemaCustomizationContext extends ISourcingConfig {
