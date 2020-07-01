@@ -1,4 +1,5 @@
 import { GraphQLSchema, DocumentNode, parse } from "graphql"
+import { flatMap } from "lodash"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
 import { compileNodeDocument } from "./compile-node-document"
 import { compileNodeFragments } from "./compile-node-fragments"
@@ -14,7 +15,9 @@ interface ICompileNodeDocumentsArgs {
   schema: GraphQLSchema
   gatsbyNodeTypes: IGatsbyNodeConfig[]
   gatsbyFieldAliases?: IGatsbyFieldAliases
-  customFragments: Array<GraphQLSource | string>
+  customFragments:
+    | Array<GraphQLSource | string>
+    | Map<RemoteTypeName, GraphQLSource | string>
 }
 
 /**
@@ -28,9 +31,13 @@ export function compileNodeQueries({
   customFragments,
 }: ICompileNodeDocumentsArgs): Map<RemoteTypeName, DocumentNode> {
   const documents = new Map<RemoteTypeName, DocumentNode>()
-  const fragments = customFragments
-    .map(fragment => parse(fragment))
-    .flatMap(doc => doc.definitions.filter(GraphQLAST.isFragment))
+  const allFragmentDocs: DocumentNode[] = []
+  customFragments.forEach(fragmentString => {
+    allFragmentDocs.push(parse(fragmentString))
+  })
+  const fragments = flatMap(allFragmentDocs, doc =>
+    doc.definitions.filter(GraphQLAST.isFragment)
+  )
 
   const nodeFragmentMap = compileNodeFragments({
     schema,

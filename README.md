@@ -908,7 +908,7 @@ function providePostDescriptionArguments(field, parentType) {
 generateDefaultFragments({
   schema,
   gatsbyNodeTypes,
-  defaultArgumentValues: [providePostDescriptionArguments]
+  defaultArgumentValues: [providePostDescriptionArguments],
 })
 ```
 
@@ -934,10 +934,14 @@ interface ICompileNodeDocumentsArgs {
   schema: GraphQLSchema
   gatsbyNodeTypes: IGatsbyNodeConfig[]
   gatsbyFieldAliases?: IGatsbyFieldAliases
-  customFragments: Array<GraphQLSource>
+  customFragments:
+    | Array<GraphQLSource | string>
+    | Map<RemoteTypeName, GraphQLSource | string>
 }
 
-function compileNodeQueries(args: ICompileNodeDocumentsArgs): Map<RemoteTypeName, DocumentNode>
+function compileNodeQueries(
+  args: ICompileNodeDocumentsArgs
+): Map<RemoteTypeName, DocumentNode>
 ```
 
 ### Schema customization tools
@@ -971,10 +975,14 @@ that were updated in the remote API since the last Gatsby build.
 See dedicated section [sourcing changes](#sourcing-changes-delta) for details.
 
 ```ts
-async function sourceNodeChanges(config: ISourcingConfig, delta: ISourceChanges): Promise<void>
+async function sourceNodeChanges(
+  config: ISourcingConfig,
+  delta: ISourceChanges
+): Promise<void>
 ```
 
 Related types:
+
 ```ts
 interface IRemoteId {
   [remoteIdField: string]: unknown
@@ -998,7 +1006,6 @@ interface ISourceChanges {
   nodeEvents: NodeEvent[]
 }
 ```
-
 
 ## TODO:
 
