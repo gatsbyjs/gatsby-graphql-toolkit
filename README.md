@@ -30,6 +30,7 @@ by providing a set of convenience tools and conventions.
     - [buildNodeDefinitions](#buildnodedefinitions)
   - [Query compilation tools](#query-compilation-tools)
     - [generateDefaultFragments](#generatedefaultfragments)
+    - [readOrGenerateDefaultFragments](#readorgeneratedefaultfragments)
     - [compileNodeQueries](#compilenodequeries)
   - [Schema customization tools](#schema-customization-tools)
     - [createSchemaCustomization](#createschemacustomization)
@@ -230,6 +231,8 @@ But instead of generating them every time, you could have chosen the following w
 1.  Generate fragments on the very first run and save them somewhere in the `src` folder
 2.  Allow developers to edit those fragments in IDE (e.g., to remove fields they don't need, add fields with arguments, etc.)
 3.  Load modified fragments from the file system on each run
+
+See [`readOrGenerateDefaultFragments`](#readorgeneratedefaultfragments) utility for something like this.
 
 For example let's modify the `Author` fragment to fetch excerpts of author posts:
 
@@ -923,6 +926,23 @@ fragment Post on Post {
   }
 }
 ```
+
+#### readOrGenerateDefaultFragments
+
+Tries to load fragments from the given `fragmentsDir` and if fragment for some type
+could not be found, generates default fragment for it using [`generateDefaultFragments`](#generatedefaultfragments)
+and writes it to `fragmentsDir`.
+
+```ts
+async function readOrGenerateDefaultFragments(
+  fragmentsDir: string,
+  config: IDefaultFragmentsConfig
+): Promise<Map<RemoteTypeName, GraphQLSource>>
+```
+
+See [`generateDefaultFragments`](#generatedefaultfragments) for `IDefaultFragmentsConfig`
+
+Tries to read fragments 
 
 #### compileNodeQueries
 
