@@ -14,7 +14,7 @@ interface ICompileNodeDocumentsArgs {
   schema: GraphQLSchema
   gatsbyNodeTypes: IGatsbyNodeConfig[]
   gatsbyFieldAliases?: IGatsbyFieldAliases
-  customFragments: Array<GraphQLSource>
+  customFragments: Array<GraphQLSource | string>
 }
 
 /**

@@ -6,7 +6,7 @@
 const fs = require("fs-extra")
 const fetch = require("node-fetch")
 const path = require("path")
-const { print, Source } = require("graphql")
+const { print } = require("gatsby/graphql")
 const {
   sourceAllNodes,
   sourceNodeChanges,
@@ -16,7 +16,7 @@ const {
   buildNodeDefinitions,
   wrapQueryExecutorWithQueue,
   loadSchema,
-} = require("../../plugins/gatsby-graphql-toolkit/dist")
+} = require("../../dist")
 
 const craftGqlToken = process.env.CRAFTGQL_TOKEN
 const craftGqlUrl = process.env.CRAFTGQL_URL
@@ -98,7 +98,7 @@ async function collectFragments() {
     if (/.graphql$/.test(fileName)) {
       const filePath = path.join(fragmentsDir, fileName)
       const fragment = await fs.readFile(filePath)
-      customFragments.push(new Source(fragment.toString(), filePath))
+      customFragments.push(fragment.toString())
     }
   }
   return customFragments
