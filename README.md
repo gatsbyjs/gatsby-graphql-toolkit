@@ -1002,6 +1002,7 @@ interface ISourceChanges {
 
 ## TODO:
 
+- [ ] Allow complex nested `remoteIdFields`
 - [ ] Mime-type mapping on nodes
 - [ ] Ignore deleted nodes when resolving references
 - [ ] Allow custom arguments in schema customization?
