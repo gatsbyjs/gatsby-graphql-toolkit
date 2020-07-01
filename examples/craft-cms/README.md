@@ -5,9 +5,9 @@
   </a>
 </p>
 
-# Example: GraphQL Toolkit with Craft CMS
+# Example: Craft CMS GraphQL API
 
-Craft exposes a nice [GraphQL API](https://docs.craftcms.com/v3/graphql.html)
+Craft CMS exposes a nice [GraphQL API](https://docs.craftcms.com/v3/graphql.html)
 which is our endpoint in this plugin.
 
 Every Craft instance is different but they all have common interfaces and root fields.
