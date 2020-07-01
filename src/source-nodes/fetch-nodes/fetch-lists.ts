@@ -51,7 +51,7 @@ export async function* fetchNodeList(
   )
 
   for await (const page of paginate(context, plan)) {
-    const partialNodes = plan.adapter.getItems(page.fieldValue)
+    const partialNodes = plan.adapter.getItems(page.fieldValue) ?? []
 
     for (const node of partialNodes) {
       if (!node || node[typeNameField] !== remoteTypeName) {

@@ -4,7 +4,8 @@ import {
   FragmentDefinitionNode,
   FieldNode,
   visit,
-  BREAK, VariableNode
+  BREAK,
+  VariableNode,
 } from "graphql"
 import * as GraphQLAST from "../../utils/ast-nodes"
 import { IPaginationAdapter } from "../../config/pagination-adapters"
@@ -29,6 +30,13 @@ export function findPaginatedFieldPath(
   paginationAdapter: IPaginationAdapter<any, any>
 ): string[] {
   const expectedVars = paginationAdapter.expectedVariableNames
+
+  if (!expectedVars.length) {
+    const isLeafField = field =>
+      !field.selectionSet || field.selectionSet.selections.length === 0
+
+    return findFieldPath(document, operationName, isLeafField)
+  }
 
   const isPaginatedField = (node: FieldNode) => {
     const variables = (node.arguments ?? [])
