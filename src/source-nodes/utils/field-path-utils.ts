@@ -32,10 +32,14 @@ export function findPaginatedFieldPath(
   const expectedVars = paginationAdapter.expectedVariableNames
 
   if (!expectedVars.length) {
-    const isLeafField = field =>
-      !field.selectionSet || field.selectionSet.selections.length === 0
-
-    return findFieldPath(document, operationName, isLeafField)
+    // TODO: consider to always use this instead of isPaginatedField
+    const hasTypeNameField = (field: FieldNode) =>
+      field.selectionSet
+        ? field.selectionSet.selections.some(
+            s => s.kind === "Field" && s.name.value === `__typename`
+          )
+        : false
+    return findFieldPath(document, operationName, hasTypeNameField)
   }
 
   const isPaginatedField = (node: FieldNode) => {

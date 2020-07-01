@@ -52,9 +52,10 @@ export async function* paginate(
     })
 
     if (!result.data) {
-      let message = `Failed to execute query ${plan.operationName}.`
+      let message = `Failed to execute query ${plan.operationName}.\n`
       if (result.errors?.length) {
-        message += ` First error :\n  ${result.errors[0].message}`
+        message += `Errors:\n`
+        message += result.errors.map(err => err.message).join(`\n\n`)
       }
       throw new Error(message)
     }
