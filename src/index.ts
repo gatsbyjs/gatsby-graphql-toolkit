@@ -16,6 +16,7 @@ export {
 export {
   compileNodeQueries,
   generateDefaultFragments,
+  readOrGenerateDefaultFragments,
 } from "./compile-node-queries"
 
 export {
