@@ -1,0 +1,11 @@
+fragment Continent on Continent {
+  code
+  name
+  # This causes internal server error in the remote API:
+  #countries {
+  #  ... on Country {
+  #    remoteTypeName: __typename
+  #    code
+  #  }
+  #}
+}

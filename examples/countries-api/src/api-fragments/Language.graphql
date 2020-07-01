@@ -1,0 +1,6 @@
+fragment Language on Language {
+  code
+  name
+  native
+  rtl
+}

@@ -1,0 +1,35 @@
+fragment Country on Country {
+  code
+  name
+  native
+  phone
+  continent {
+    ... on Continent {
+      remoteTypeName: __typename
+      code
+    }
+  }
+  capital
+  currency
+  languages {
+    ... on Language {
+      remoteTypeName: __typename
+      code
+    }
+  }
+  emoji
+  emojiU
+  states {
+    ... on State {
+      code
+      name
+      # This causes internal server error in the remote API:
+      # country {
+      #   ... on Country {
+      #     remoteTypeName: __typename
+      #     code
+      #   }
+      # }
+    }
+  }
+}
