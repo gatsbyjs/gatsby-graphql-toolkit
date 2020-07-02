@@ -13,6 +13,11 @@ npm install --save gatsby-graphql-source-toolkit
 
 The toolkit is in alpha stage, so **expect breaking changes**.
 
+## Get Help
+
+Check out the [#gatsby-graphql-toolkit](https://discord.gg/RT2Wqr8) channel on Gatsby Discord.
+Your feedback and feature requests are very welcome!
+
 ## Important Note
 
 This is a temporary repository. Eventually it will be merged into gatsby monorepo.
