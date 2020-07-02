@@ -1,9 +1,14 @@
 # Gatsby GraphQL Source Toolkit
 
-The toolkit designed to simplify data sourcing from the remote GraphQL API into Gatsby.
+A toolkit designed to simplify data sourcing from a remote GraphQL API into Gatsby.
 
 Note: this is **not** a source plugin by itself, but it helps [writing custom GraphQL source plugins][1]
 by providing a set of convenience tools and conventions.
+
+## Important Note
+
+This is a temporary repository. Eventually it will be merged into gatsby monorepo.
+See this PR for progress: https://github.com/gatsbyjs/gatsby/pull/25468
 
 ## Table of contents
 
