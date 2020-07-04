@@ -77,7 +77,6 @@ fragment about_about_Entry on about_about_Entry {
           col1
           label
           col2
-          url
         }
       }
     }

@@ -22,7 +22,6 @@ fragment profile_GlobalSet on profile_GlobalSet {
       col1
       label
       col2
-      url
     }
   }
   foundingDate

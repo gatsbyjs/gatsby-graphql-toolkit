@@ -153,7 +153,6 @@ fragment artwork_artwork_Entry on artwork_artwork_Entry {
       col5
       created
       col4
-      privateComment
     }
   }
   metaDescription
