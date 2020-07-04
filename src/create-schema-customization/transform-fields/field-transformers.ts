@@ -8,6 +8,7 @@ import {
   isWrappingType,
   GraphQLType,
   getNamedType,
+  isEnumType,
 } from "graphql"
 import { resolveRemoteType } from "../utils/resolve-remote-type"
 import {
@@ -35,7 +36,14 @@ export const fieldTransformers: IGatsbyFieldTransform[] = [
       }
     },
   },
+  {
+    // Enums (with any wrappers, i.e. lists, non-null)
+    test: ({ remoteField }) => isEnumType(getNamedType(remoteField.type)),
 
+    transform: ({ remoteField, context }) => ({
+      type: toGatsbyType(context, remoteField.type),
+    }),
+  },
   {
     // Non-gatsby-node objects (with any wrappers, i.e. lists, non-null)
     test: ({ remoteField, context }) => {
@@ -136,8 +144,8 @@ export const fieldTransformers: IGatsbyFieldTransform[] = [
 
   // for finding unhandled types
   // {
-  //   test: () => true,
-  //   transform: ({ field }) => dd(field),
+  //  test: () => true,
+  //  transform: ({ remoteField, fieldInfo }) => console.log(fieldInfo),
   // },
 ]
 

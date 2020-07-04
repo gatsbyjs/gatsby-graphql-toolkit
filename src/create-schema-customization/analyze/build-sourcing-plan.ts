@@ -9,6 +9,7 @@ import {
   ASTKindToNode,
   getNamedType,
   isUnionType,
+  isEnumType,
 } from "graphql"
 import {
   IGatsbyNodeDefinition,
@@ -38,6 +39,7 @@ function buildFetchedTypeMap(args: IBuildSourcingPlanArgs) {
   const Visitors: {
     collectTypeFields: Visitor<ASTKindToNode>
     addUnionTypes: Visitor<ASTKindToNode>
+    addEnumTypes: Visitor<ASTKindToNode>
   } = {
     collectTypeFields: {
       Field: (node: FieldNode) => {
@@ -56,12 +58,12 @@ function buildFetchedTypeMap(args: IBuildSourcingPlanArgs) {
         const fetchedFields = fetchedTypesMap.get(parentTypeName) as Map<
           RemoteFieldAlias,
           IRemoteFieldUsage
-          >
+        >
         fetchedFields.set(aliasNode.value, {
           alias: aliasNode.value,
           name: node.name.value,
         })
-      }
+      },
     },
     addUnionTypes: {
       Field: () => {
@@ -79,13 +81,33 @@ function buildFetchedTypeMap(args: IBuildSourcingPlanArgs) {
           fetchedTypesMap.set(unionType.name, new Map())
         }
       },
-    }
+    },
+    addEnumTypes: {
+      Field: () => {
+        // Enum types must be added separately as well
+        const type = typeInfo.getType()
+        if (!type) {
+          return
+        }
+        const enumType = getNamedType(type)
+        if (!isEnumType(enumType)) {
+          return
+        }
+        if (!fetchedTypesMap.has(enumType.name)) {
+          fetchedTypesMap.set(enumType.name, new Map())
+        }
+      },
+    },
   }
 
-  const visitor = visitWithTypeInfo(typeInfo, visitInParallel([
-    Visitors.collectTypeFields,
-    Visitors.addUnionTypes,
-  ]))
+  const visitor = visitWithTypeInfo(
+    typeInfo,
+    visitInParallel([
+      Visitors.collectTypeFields,
+      Visitors.addUnionTypes,
+      Visitors.addEnumTypes,
+    ])
+  )
 
   for (const [, def] of args.gatsbyNodeDefs) {
     // TODO: optimize visitorKeys
