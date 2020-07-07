@@ -1047,6 +1047,7 @@ interface ISourceChanges {
 
 ## TODO:
 
+- [ ] Add sourcing config validation
 - [ ] Allow complex nested `remoteIdFields`
 - [ ] Mime-type mapping on nodes
 - [ ] Ignore deleted nodes when resolving references

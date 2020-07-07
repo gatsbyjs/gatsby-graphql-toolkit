@@ -71,7 +71,7 @@ export function addVariableDefinitions({
     Argument: node => {
       const inputType = typeInfo.getInputType()
       if (node.value.kind === "Variable" && inputType) {
-        currentDefinition.variables.set(node.name.value, inputType)
+        currentDefinition.variables.set(node.value.name.value, inputType)
       }
     },
   }
