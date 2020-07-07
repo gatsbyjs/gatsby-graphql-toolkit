@@ -20,6 +20,10 @@ import {
 // TODO: map args
 // TODO: support pagination
 
+function isListOrNonNullListType(type: any) {
+  return isListType(type) || (isNonNullType(type) && isListType(type.ofType))
+}
+
 export const fieldTransformers: IGatsbyFieldTransform[] = [
   {
     // Scalars (with any wrappers, i.e. lists, non-null)
@@ -79,8 +83,8 @@ export const fieldTransformers: IGatsbyFieldTransform[] = [
   {
     // Lists of unions and interfaces
     test: ({ remoteField }) =>
-      isListType(remoteField.type) &&
-      isAbstractType(getNamedType(remoteField.type.ofType)),
+      isListOrNonNullListType(remoteField.type) &&
+      isAbstractType(getNamedType(remoteField.type)),
 
     transform: ({ remoteField, fieldInfo, context }) => {
       return {
@@ -100,7 +104,7 @@ export const fieldTransformers: IGatsbyFieldTransform[] = [
     test: ({ remoteField, context }) => {
       const namedType = getNamedType(remoteField.type)
       return (
-        !isListType(remoteField.type) &&
+        !isListOrNonNullListType(remoteField.type) &&
         isObjectType(namedType) &&
         context.gatsbyNodeDefs.has(namedType.name)
       )
@@ -124,7 +128,7 @@ export const fieldTransformers: IGatsbyFieldTransform[] = [
     test: ({ remoteField, context }) => {
       const namedType = getNamedType(remoteField.type)
       return (
-        isListType(remoteField.type) &&
+        isListOrNonNullListType(remoteField.type) &&
         isObjectType(namedType) &&
         context.gatsbyNodeDefs.has(namedType.name)
       )
