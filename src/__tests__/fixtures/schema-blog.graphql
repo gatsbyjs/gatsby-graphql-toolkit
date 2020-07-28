@@ -1,0 +1,41 @@
+type Query {
+  post(id: ID!): Post
+  posts(limit: Int, offset: Int): [Post!]!
+
+  author(id: ID!): Author
+  authors(limit: Int, offset: Int): [Author!]!
+
+  entry(id: ID!): Entry
+  entries(limit: Int, offset: Int): [Entry!]!
+}
+
+interface Entry {
+  id: ID!
+}
+
+type Post implements Entry {
+  id: ID!
+  title: String
+  author: Author!
+}
+
+type Author implements Entry & Named {
+  id: ID!
+  posts: [Post!]!
+  displayName: String!
+  country: Country
+}
+
+type Guest implements Entry & Named {
+  id: ID!
+  displayName: String!
+}
+
+type Country implements Named {
+  displayName: String!
+  countryCode: String!
+}
+
+interface Named {
+  displayName: String!
+}
