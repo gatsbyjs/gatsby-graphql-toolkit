@@ -92,11 +92,13 @@ function objectType(
     typeNameTransform,
   } = context
 
+  const interfaces = collectGatsbyTypeInterfaces(context, type)
+
   const typeConfig = {
     name: typeNameTransform.toGatsbyTypeName(type.name),
     fields: buildFields(context, type),
-    interfaces: collectGatsbyTypeInterfaces(context, type),
-    extensions: { infer: false },
+    interfaces,
+    extensions: interfaces.includes(`Node`) ? { infer: false } : {},
   }
 
   return schema.buildObjectType(typeConfig)
@@ -138,7 +140,7 @@ function enumType(
     values: remoteType.getValues().reduce((acc, enumValue) => {
       acc[enumValue.name] = { name: enumValue.name }
       return acc
-    }, Object.create(null))
+    }, Object.create(null)),
   }
 
   return schema.buildEnumType(typeConfig)
@@ -163,4 +165,25 @@ export function buildTypeDefinition(
     return enumType(context, type)
   }
   return undefined
+}
+
+export function buildTypeDefinitions(
+  context: ISchemaCustomizationContext
+): GatsbyGraphQLType[] {
+  const typeDefs: GatsbyGraphQLType[] = []
+
+  for (const typeName of collectTypesToCustomize(context)) {
+    const typeDef = buildTypeDefinition(context, typeName)
+    if (typeDef) {
+      typeDefs.push(typeDef)
+    }
+  }
+  return typeDefs
+}
+
+function collectTypesToCustomize(context: ISchemaCustomizationContext) {
+  return new Set([
+    ...context.sourcingPlan.fetchedTypeMap.keys(),
+    ...context.gatsbyNodeDefs.keys(),
+  ])
 }
