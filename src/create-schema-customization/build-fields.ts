@@ -1,6 +1,14 @@
-import { GraphQLInterfaceType, GraphQLObjectType, isObjectType } from "graphql"
+import {
+  GraphQLInterfaceType,
+  GraphQLObjectType,
+  isInterfaceType,
+  isObjectType,
+} from "graphql"
+import { GatsbyGraphQLObjectType } from "gatsby"
 import { ISchemaCustomizationContext, IGatsbyFieldInfo } from "../types"
 import { fieldTransformers } from "./transform-fields/field-transformers"
+
+type FieldMap = NonNullable<GatsbyGraphQLObjectType["config"]["fields"]>
 
 /**
  * Transforms fields from the remote schema to work in the Gatsby schema
@@ -9,16 +17,25 @@ import { fieldTransformers } from "./transform-fields/field-transformers"
  */
 export function buildFields(
   context: ISchemaCustomizationContext,
-  remoteType: GraphQLInterfaceType | GraphQLObjectType
-) {
+  remoteTypeName: string
+): FieldMap {
+  const remoteType = context.schema.getType(remoteTypeName)
+
+  if (!isObjectType(remoteType) && !isInterfaceType(remoteType)) {
+    throw new Error(
+      `Cannot build fields for ${remoteType}. ` +
+        `Expecting ${remoteType} to be an object or an interface type`
+    )
+  }
+
   const fields = collectGatsbyTypeFields(context, remoteType)
-  return fields.reduce((fieldsConfig: object, field: IGatsbyFieldInfo) => {
+  return fields.reduce((fieldsConfig: FieldMap, field: IGatsbyFieldInfo) => {
     const config = buildFieldConfig(context, field, remoteType)
     if (config) {
       fieldsConfig[field.gatsbyFieldName] = config
     }
     return fieldsConfig
-  }, {})
+  }, Object.create(null))
 }
 
 /**

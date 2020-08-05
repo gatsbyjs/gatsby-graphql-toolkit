@@ -30,7 +30,7 @@ export function compileNodeDocument(args: ICompileNodeDocumentArgs) {
   //  1. { allUser }
   //  2. { allNode(type: "User") }
   //
-  // We want them to be transformed to:
+  // We want to transform them to:
   //  1. { allUser { ...UserFragment1 ...UserFragment2 }}
   //  2. { allNode(type: "User") { ...UserFragment1 ...UserFragment2 }}
   //

@@ -66,7 +66,7 @@ function interfaceType(
 
   const typeConfig = {
     name: typeNameTransform.toGatsbyTypeName(type.name),
-    fields: buildFields(context, type),
+    fields: buildFields(context, type.name),
     resolveType: (source: any) => {
       if (isGatsbyNode(source)) {
         return source.internal.type
@@ -96,7 +96,7 @@ function objectType(
 
   const typeConfig = {
     name: typeNameTransform.toGatsbyTypeName(type.name),
-    fields: buildFields(context, type),
+    fields: buildFields(context, type.name),
     interfaces,
     extensions: interfaces.includes(`Node`) ? { infer: false } : {},
   }

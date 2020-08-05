@@ -1,14 +1,8 @@
-import { createBlogSchema, gatsbyApi } from "../../__tests__/test-utils"
-import { createSchemaCustomizationContext } from "../create-schema-customization"
-import { buildTypeDefinition } from "../build-types"
 import {
-  IGatsbyNodeConfig,
-  IGatsbyNodeDefinition,
-  IRemoteId,
-  ISourcingConfig,
-  RemoteTypeName,
-} from "../../types"
-import { parse } from "graphql"
+  createBlogSchemaCustomizationContext as createTestContext,
+  createGatsbyNodeDefinitions,
+} from "../../__tests__/test-utils"
+import { buildTypeDefinition } from "../build-types"
 import { GatsbyGraphQLObjectType } from "gatsby"
 
 describe(`Build objectType`, () => {
@@ -86,7 +80,7 @@ describe(`Build objectType`, () => {
       const simpleDef = buildTypeDefinition(context, `Country`)
 
       expect(nodeDef).toMatchObject({
-        config: { interfaces: [`Node`] }
+        config: { interfaces: [`Node`] },
       })
       expect(simpleDef).toMatchObject({
         config: { interfaces: [] },
@@ -118,38 +112,77 @@ describe(`Build objectType`, () => {
       })
     })
   })
-})
 
-function createGatsbyNodeDefinitions(defs: Array<Partial<IGatsbyNodeConfig>>) {
-  const gatsbyNodeDefs = new Map<RemoteTypeName, IGatsbyNodeDefinition>()
+  describe(`Fields`, () => {
+    // See build-fields.ts for a complete test suite
 
-  defs.forEach(def => {
-    if (!def.remoteTypeName) {
-      throw new Error("remoteTypeName must be set")
-    }
-    gatsbyNodeDefs.set(def.remoteTypeName, {
-      remoteTypeName: def.remoteTypeName,
-      remoteIdFields: [`id`],
-      document: parse(def.queries ?? ``),
-      nodeQueryVariables: (id: IRemoteId) => ({ ...id }),
-      ...def,
+    it(`creates empty fields object by default`, () => {
+      // Doesn't sound right but we validate against empty objects somewhere else
+      const def = buildTypeDefinition(createTestContext(), `Country`)
+
+      expect((def as GatsbyGraphQLObjectType).config.fields).toEqual({})
+    })
+
+    it(`adds fields referenced in node query`, () => {
+      const gatsbyNodeDefs = createGatsbyNodeDefinitions([
+        {
+          remoteTypeName: `Author`,
+          queries: `{
+            authors {
+              id
+              displayName
+              country {
+                ...on Named { displayName }
+              }
+              posts { id }
+            }
+          }`,
+        },
+      ])
+      const context = createTestContext({ gatsbyNodeDefs })
+      const authorDef = buildTypeDefinition(context, `Author`)
+      const countryDef = buildTypeDefinition(context, `Country`)
+
+      const authorFields = (authorDef as GatsbyGraphQLObjectType).config.fields
+      const countryFields = (countryDef as GatsbyGraphQLObjectType).config
+        .fields
+
+      expect(Object.keys(authorFields ?? {})).toHaveLength(4)
+      expect(authorFields).toMatchObject({
+        id: { type: `ID!` },
+        displayName: { type: `String!` },
+        country: { type: `TestApiCountry` },
+        posts: { type: `[TestApiPost!]!` },
+      })
+
+      expect(Object.keys(countryFields ?? {})).toHaveLength(1)
+      expect(countryFields).toMatchObject({
+        displayName: { type: `String!` },
+      })
+    })
+
+    it(`adds fields to node type referenced in other node type queries`, () => {
+      // FIXME: we shouldn't add fields from other node type queries as
+      //  they won't always resolve correctly?
+      const gatsbyNodeDefs = createGatsbyNodeDefinitions([
+        {
+          remoteTypeName: `Author`,
+          queries: `{ authors { id } }`,
+        },
+        {
+          remoteTypeName: `Post`,
+          queries: `{ posts { author { displayName } } }`,
+        },
+      ])
+      const context = createTestContext({ gatsbyNodeDefs })
+      const authorDef = buildTypeDefinition(context, `Author`)
+      const authorFields = (authorDef as GatsbyGraphQLObjectType).config.fields
+
+      expect(Object.keys(authorFields ?? {})).toHaveLength(2)
+      expect(authorFields).toMatchObject({
+        id: { type: `ID!` },
+        displayName: { type: `String!` },
+      })
     })
   })
-
-  return gatsbyNodeDefs
-}
-
-function createTestContext(config: Partial<ISourcingConfig> = {}) {
-  const gatsbyNodeDefs = new Map<RemoteTypeName, IGatsbyNodeDefinition>()
-
-  return createSchemaCustomizationContext({
-    schema: createBlogSchema(),
-    gatsbyApi,
-    gatsbyTypePrefix: `TestApi`,
-    execute() {
-      throw new Error("Should not execute")
-    },
-    gatsbyNodeDefs,
-    ...config,
-  })
-}
+})
