@@ -4,9 +4,12 @@ import {
   INodeIdTransform,
   IRemoteNode,
   IRemoteId,
+  IObject,
 } from "../types"
 import { Node } from "gatsby"
-import { inspect } from "util"
+import { flatMap } from "lodash"
+import { FragmentDefinitionNode, SelectionNode } from "graphql"
+import { isField, isFragment } from "../utils/ast-nodes"
 
 export function createNodeIdTransform(
   gatsbyFieldAliases: IGatsbyFieldAliases
@@ -16,60 +19,85 @@ export function createNodeIdTransform(
       remoteNode: IRemoteNode,
       def: IGatsbyNodeDefinition
     ): string {
-      const idValues = def.remoteIdFields.map(idField => {
-        const alias = gatsbyFieldAliases[idField] ?? idField
-        if (!remoteNode.hasOwnProperty(alias)) {
-          throw new Error(
-            `Missing field ${alias} in the remote node of type ${def.remoteTypeName}`
-          )
-        }
-        return remoteNode[alias]
-      })
-      return idValues.join(`:`)
+      const remoteId = this.remoteNodeToId(remoteNode, def)
+      return this.remoteIdToGatsbyNodeId(remoteId, def)
     },
     gatsbyNodeToRemoteId(
       gatsbyNode: Node,
       def: IGatsbyNodeDefinition
     ): IRemoteId {
-      return def.remoteIdFields.reduce((acc, idField) => {
-        const alias = gatsbyFieldAliases[idField] ?? idField
-        if (!gatsbyNode.hasOwnProperty(alias)) {
-          throw new Error(
-            `Missing expected field ${alias} in the Gatsby node ${gatsbyNode.internal.type}: ${gatsbyNode.id}`
-          )
-        }
-        acc[idField] = gatsbyNode[alias]
-        return acc
-      }, {})
+      const idFragment = getIdFragment(def)
+      return getSelectionValues(gatsbyNode, idFragment.selectionSet.selections)
     },
     remoteIdToGatsbyNodeId(
       remoteId: IRemoteId,
+      // @ts-ignore
       def: IGatsbyNodeDefinition
     ): string {
-      const remoteNodePartial = Object.keys(remoteId).reduce(
-        (node, idField) => {
-          const alias = gatsbyFieldAliases[idField] ?? idField
-          node[alias] = remoteId[idField]
-          return node
-        },
-        {}
-      )
-      return this.remoteNodeToGatsbyId(remoteNodePartial, def)
+      // TODO: stable sorting as in the id fragment?
+      // TODO: validate remote id (make sure it has all the fields as defined)
+      const idValues = flatObjectValues(remoteId)
+      return idValues.join(`:`)
     },
     remoteNodeToId(
       remoteNode: IRemoteNode,
       def: IGatsbyNodeDefinition
     ): IRemoteId {
-      return def.remoteIdFields.reduce((acc, idField) => {
-        const alias = gatsbyFieldAliases[idField] ?? idField
-        if (!remoteNode.hasOwnProperty(alias)) {
-          throw new Error(
-            `Missing expected field ${alias} in the remote node ${def.remoteTypeName}: ${inspect(remoteNode)}`
-          )
-        }
-        acc[idField] = remoteNode[alias]
-        return acc
-      }, {})
+      const idFragment = getIdFragment(def)
+      return getSelectionValues(remoteNode, idFragment.selectionSet.selections)
     },
   }
+
+  function getIdFragment(def: IGatsbyNodeDefinition): FragmentDefinitionNode {
+    const fragment = def.document.definitions.find(isFragment)
+    if (!fragment) {
+      throw new Error(
+        `Every node type definition is expected to contain a fragment ` +
+          `with ID fields for this node type. Definition for ${def.remoteTypeName} has none.`
+      )
+    }
+    return fragment
+  }
+
+  function getSelectionValues(
+    obj: IObject,
+    selections: ReadonlyArray<SelectionNode>
+  ): IObject {
+    const result = Object.create(null)
+    for (const selection of selections) {
+      if (!isField(selection)) {
+        throw new Error("Expecting fields only")
+      }
+      const nestedFields: ReadonlyArray<SelectionNode> =
+        selection.selectionSet?.selections ?? []
+
+      const fieldName =
+        gatsbyFieldAliases[selection.name.value] ?? selection.name.value
+
+      const fieldValue = obj[fieldName]
+      if (isNullish(fieldValue)) {
+        throw new Error("ID Field value cannot be nullish")
+      }
+      if (nestedFields.length > 0 && typeof fieldValue !== `object`) {
+        throw new Error("Expecting object value for a field with selection")
+      }
+      result[fieldName] =
+        nestedFields.length > 0
+          ? getSelectionValues(fieldValue as IObject, nestedFields)
+          : fieldValue
+    }
+    return result
+  }
+
+  function flatObjectValues(obj: object): Array<unknown> {
+    return flatMap(Object.values(obj), value =>
+      typeof value === `object` && value !== null
+        ? flatObjectValues(value)
+        : value
+    )
+  }
+}
+
+function isNullish(value: any) {
+  return typeof value === `undefined` || value === null
 }

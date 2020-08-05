@@ -19,7 +19,7 @@ import {
 import * as GraphQLAST from "../utils/ast-nodes"
 import { replaceNodeSelectionWithReference } from "./ast-transformers/replace-node-selection-with-reference"
 import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
-import { removeFragmentNodeIdFields } from "./ast-transformers/remove-fragment-node-id-fields"
+// import { removeFragmentNodeIdFields } from "./ast-transformers/remove-fragment-node-id-fields"
 import { addRemoteTypeNameField } from "./ast-transformers/add-remote-typename-field"
 import {
   buildTypeUsagesMap,
@@ -161,7 +161,8 @@ function transformIntermediateNodeFragments(
         // Remove id fields from node fragments:
         //   they are already explicitly at the top level of the query
         //   (just a prettify/cleanup transform really)
-        removeFragmentNodeIdFields(visitContext),
+        // FIXME:
+        // removeFragmentNodeIdFields(visitContext),
       ])
     )
   )

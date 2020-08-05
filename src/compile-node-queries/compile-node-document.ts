@@ -6,7 +6,6 @@ import {
   visitWithTypeInfo,
   visitInParallel,
   FragmentDefinitionNode,
-  FieldNode,
 } from "graphql"
 import * as GraphQLAST from "../utils/ast-nodes"
 import { addVariableDefinitions } from "./ast-transformers/add-variable-definitions"
@@ -35,8 +34,6 @@ export function compileNodeDocument(args: ICompileNodeDocumentArgs) {
   //  2. { allNode(type: "User") { ...UserFragment1 ...UserFragment2 }}
   //
   const typeInfo = new TypeInfo(args.schema)
-  const aliases = args.gatsbyFieldAliases
-  let didSpread = false
 
   return visit(
     fullDocument,
@@ -45,29 +42,18 @@ export function compileNodeDocument(args: ICompileNodeDocumentArgs) {
       visitInParallel([
         {
           FragmentDefinition: () => false, // skip fragments
-          OperationDefinition: () => {
-            didSpread = false
-          },
-          Field: {
+          SelectionSet: {
             leave: node => {
-              if (didSpread) {
-                return false // skip visiting this node
-              }
-              // Spreading in the very first leaf field
-              didSpread = true
-              const editedField: FieldNode = {
-                ...node,
-                selectionSet: GraphQLAST.selectionSet([
-                  ...args.gatsbyNodeType.remoteIdFields.map(id =>
-                    GraphQLAST.field(id, aliases[id])
-                  ),
+              if (node.selections.some(GraphQLAST.isFragmentSpread)) {
+                return GraphQLAST.selectionSet([
+                  ...node.selections,
                   ...args.fragments.map(fragment =>
                     GraphQLAST.fragmentSpread(fragment.name.value)
                   ),
-                ]),
+                ])
               }
-              return editedField
-            },
+              return undefined
+            }
           },
         },
         addVariableDefinitions({ typeInfo }),

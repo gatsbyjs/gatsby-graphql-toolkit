@@ -47,13 +47,16 @@ export type GraphQLSource = string | Source
 
 export interface IGatsbyNodeConfig {
   remoteTypeName: RemoteTypeName
-  remoteIdFields: string[]
   queries: GraphQLSource
   nodeQueryVariables?: (id: IRemoteId) => object
 }
 
 export interface IRemoteNode {
   [key: string]: unknown
+}
+
+export interface IObject {
+  [field: string]: unknown
 }
 
 export interface IRemoteId {
@@ -112,7 +115,7 @@ export interface ITypeNameTransform {
  */
 export interface IGatsbyNodeDefinition {
   remoteTypeName: RemoteTypeName
-  remoteIdFields: string[]
+  // remoteIdFields: string[]
   document: DocumentNode
   nodeQueryVariables: (id: IRemoteId) => object
 }
