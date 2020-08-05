@@ -39,7 +39,7 @@ export function buildFields(
 }
 
 /**
- * Returns a list of fields to be added to Gatsby schema for this type.
+ * Returns a list of fields to be added to Gatsby schema for this object type.
  *
  * This list is an intersection of schema fields with fields and aliases from node queries for this type.
  * In other words only fields and aliases requested in node queries will be added to the schema.
@@ -59,12 +59,19 @@ function collectGatsbyTypeFields(
   const collectedFields: IGatsbyFieldInfo[] = []
   const collectFromTypes = isObjectType(remoteType)
     ? [remoteType, ...remoteType.getInterfaces()]
-    : [remoteType]
+    : [remoteType, ...context.schema.getPossibleTypes(remoteType)]
+
+  const remoteTypeFields = remoteType.getFields()
 
   for (const type of collectFromTypes) {
     const fetchedFields = fetchedTypeMap.get(type.name) ?? []
     for (const { name, alias } of fetchedFields.values()) {
       if (name === `__typename`) {
+        continue
+      }
+      if (!remoteTypeFields[name]) {
+        // Possible when collecting fields of interface type and checking one of
+        // it's implementation fields that is not a part of the interface
         continue
       }
       collectedFields.push({
