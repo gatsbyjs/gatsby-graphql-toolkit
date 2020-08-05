@@ -140,3 +140,11 @@ export function isFragment(node: ASTNode): node is FragmentDefinitionNode {
 export function isOperation(node: ASTNode): node is OperationDefinitionNode {
   return node.kind === "OperationDefinition"
 }
+
+export function isField(node: ASTNode): node is FieldNode {
+  return node.kind === "Field"
+}
+
+export function isFragmentSpread(node: ASTNode): node is FragmentSpreadNode {
+  return node.kind === "FragmentSpread"
+}
