@@ -117,7 +117,9 @@ export function inlineNamedFragments(
 
       if (typeStack.includes(typeName)) {
         // TODO: allow configurable number of nesting levels?
-        return null // delete this spread completely
+        // Replace the spread with a single __typename field to break the cycle
+        // FIXME: delete parent field in this case vs replacing with __typename
+        return GraphQLAST.field(`__typename`)
       }
       typeStack.push(typeName)
 
