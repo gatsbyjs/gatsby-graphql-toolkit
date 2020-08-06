@@ -107,7 +107,7 @@ function generateDefaultFragment(
   )
 }
 
-export function inlineNamedFragments(
+function inlineNamedFragments(
   args: IGenerateDefaultFragmentContext
 ): Visitor<ASTKindToNode> {
   const typeStack: string[] = []
@@ -119,7 +119,7 @@ export function inlineNamedFragments(
         // TODO: allow configurable number of nesting levels?
         // Replace the spread with a single __typename field to break the cycle
         // FIXME: delete parent field in this case vs replacing with __typename
-        return GraphQLAST.field(`__typename`)
+        return GraphQLAST.field(`__typename`, args.gatsbyFieldAliases[`__typename`])
       }
       typeStack.push(typeName)
 
@@ -183,9 +183,7 @@ export function inlineNamedFragments(
  * }
  * ```
  */
-export function buildTypeFragmentMap(
-  config: IDefaultFragmentsConfig
-): FragmentMap {
+function buildTypeFragmentMap(config: IDefaultFragmentsConfig): FragmentMap {
   const typeMap = config.schema.getTypeMap()
   const fragmentMap = new Map()
 
