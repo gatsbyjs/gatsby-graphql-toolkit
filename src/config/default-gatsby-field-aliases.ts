@@ -6,4 +6,5 @@ export const defaultGatsbyFieldAliases: IGatsbyFieldAliases = {
   internal: "remoteInternal",
   children: "remoteChildren",
   parent: "remoteParent",
+  fields: "remoteFields",
 }
