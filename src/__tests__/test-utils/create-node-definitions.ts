@@ -5,7 +5,6 @@ import {
   RemoteTypeName,
 } from "../../types"
 import { parse } from "graphql"
-import { isFragment } from "../../utils/ast-nodes"
 
 export function createGatsbyNodeDefinitions(
   defs: Array<Partial<IGatsbyNodeConfig>>
@@ -14,25 +13,16 @@ export function createGatsbyNodeDefinitions(
 
   defs.forEach((def, index) => {
     // TODO: Proper config validation
-    if (!def.queries) {
+    if (!def.remoteTypeName) {
       throw new Error(
-        `Every node type definition is expected to have key "queries". ` +
-        `But definition at index ${index} has none.`
+        `Every node type definition is expected to have key "remoteTypeName". ` +
+          `But definition at index ${index} has none.`
       )
     }
-    const document = parse(def.queries ?? ``)
-    const fragments = document.definitions.filter(isFragment)
-    if (fragments.length !== 1) {
-      throw new Error(
-        `Every node type query is expected to contain a single fragment `+
-        `with ID fields for this node type. Definition at index ${index} has none.`
-      )
-    }
-    const idFragment = fragments[0]
-    const remoteTypeName = idFragment.typeCondition.name.value
+    const remoteTypeName = def.remoteTypeName
     gatsbyNodeDefs.set(remoteTypeName, {
       remoteTypeName,
-      document,
+      document: parse(def.queries ?? ``),
       nodeQueryVariables: (id: IRemoteId) => ({ ...id }),
       ...def,
     })
