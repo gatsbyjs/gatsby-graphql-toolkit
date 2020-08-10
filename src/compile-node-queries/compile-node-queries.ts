@@ -1,12 +1,13 @@
 import {
   GraphQLSchema,
   DocumentNode,
+  SelectionNode,
   parse,
   FragmentDefinitionNode,
   TypeInfo,
   visit,
   visitWithTypeInfo,
-  visitInParallel
+  visitInParallel,
 } from "graphql"
 import { flatMap } from "lodash"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
@@ -103,19 +104,33 @@ function compileNodeDocument(args: ICompileNodeDocumentArgs) {
           SelectionSet: {
             leave: node => {
               if (node.selections.some(GraphQLAST.isFragmentSpread)) {
+                // Add:
+                // 1. remoteTypeName: __typename
+                // 2. Spread for ...NodeTypeId (and other custom selections)
+                // 3. Spreads for all custom fragments
                 return GraphQLAST.selectionSet([
-                  ...node.selections,
+                  GraphQLAST.field(
+                    `__typename`,
+                    args.gatsbyFieldAliases[`__typename`]
+                  ),
+                  ...node.selections.filter(
+                    selection => !isTypeNameField(selection)
+                  ),
                   ...args.fragments.map(fragment =>
                     GraphQLAST.fragmentSpread(fragment.name.value)
                   ),
                 ])
               }
               return undefined
-            }
+            },
           },
         },
         addVariableDefinitions({ typeInfo }),
       ])
     )
   )
+}
+
+function isTypeNameField(node: SelectionNode): boolean {
+  return node.kind === "Field" && node.name.value === `__typename`
 }
