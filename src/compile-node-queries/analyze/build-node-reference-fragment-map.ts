@@ -6,9 +6,14 @@ import {
   parse,
   FragmentDefinitionNode,
   FieldNode,
+  SelectionNode,
 } from "graphql"
 import { flatMap } from "lodash"
-import { FragmentMap, IGatsbyNodeConfig, RemoteTypeName } from "../../types"
+import {
+  FragmentMap,
+  IGatsbyNodeConfig,
+  RemoteTypeName,
+} from "../../types"
 import * as GraphQLAST from "../../utils/ast-nodes"
 
 /**
@@ -43,23 +48,21 @@ export function buildNodeReferenceFragmentMap({
   const nodesMap = new Map<RemoteTypeName, FragmentDefinitionNode>()
 
   // Add reference fragments for simple node object types
+  // TODO: move config validation to a separate step
   nodes.forEach((config, index) => {
-    if (!config.queries) {
+    if (!config.remoteTypeName) {
       throw new Error(
-        `Every node type definition is expected to have key "queries". ` +
+        `Every node type definition is expected to have key "remoteTypeName". ` +
           `But definition at index ${index} has none.`
       )
     }
-    const document = parse(config.queries)
-    const fragments = document.definitions.filter(GraphQLAST.isFragment)
-    if (fragments.length !== 1) {
+    if (!config.queries) {
       throw new Error(
-        `Every node type query is expected to contain a single fragment ` +
-          `with ID fields for this node type. Definition at index ${index} has none.`
+        `Every node type definition is expected to have key "queries". ` +
+          `But definition for ${config.remoteTypeName} has none.`
       )
     }
-    const idFragment = fragments[0]
-    const remoteTypeName = idFragment.typeCondition.name.value
+    const remoteTypeName = config.remoteTypeName
     const nodeType = schema.getType(remoteTypeName)
     if (!isObjectType(nodeType)) {
       throw new Error(
@@ -67,9 +70,34 @@ export function buildNodeReferenceFragmentMap({
           `(for definition at index ${index})`
       )
     }
-    nodeReferenceFragmentMap.set(remoteTypeName, idFragment)
+    const document = parse(config.queries)
+    const fragments = document.definitions.filter(GraphQLAST.isFragment)
+    if (fragments.length !== 1) {
+      throw new Error(
+        `Every node type query is expected to contain a single fragment ` +
+          `with ID fields for this node type. Definition for ${remoteTypeName} has none.`
+      )
+    }
+    const idFragment = fragments[0]
+    if (idFragment.typeCondition.name.value !== remoteTypeName) {
+      throw new Error(
+        `Fragment ${idFragment.name.value} for node type ${remoteTypeName} ` +
+          `is incorrectly defined on type ${idFragment.typeCondition.name.value}`
+      )
+    }
+    const referenceFragment: FragmentDefinitionNode = GraphQLAST.fragmentDefinition(
+      remoteTypeName,
+      remoteTypeName,
+      [
+        GraphQLAST.field(`__typename`),
+        ...idFragment.selectionSet.selections.filter(
+          selection => !isTypeName(selection)
+        ),
+      ]
+    )
+    nodeReferenceFragmentMap.set(remoteTypeName, referenceFragment)
     possibleNodeInterfaces.push(...nodeType.getInterfaces())
-    nodesMap.set(remoteTypeName, idFragment)
+    nodesMap.set(remoteTypeName, referenceFragment)
   })
 
   // Detect node interfaces and add reference fragments for those
@@ -80,11 +108,11 @@ export function buildNodeReferenceFragmentMap({
     if (!allPossibleTypesAreNodeTypes(possibleTypes, nodesMap)) {
       return
     }
-    const idFragment = combineIdFragments(iface.name, possibleTypes, nodesMap)
-    if (!hasAllIdFields(iface, idFragment)) {
+    const referenceFragment = combineReferenceFragments(iface.name, possibleTypes, nodesMap)
+    if (!hasAllIdFields(iface, referenceFragment)) {
       return
     }
-    nodeReferenceFragmentMap.set(iface.name, idFragment)
+    nodeReferenceFragmentMap.set(iface.name, referenceFragment)
   })
 
   return nodeReferenceFragmentMap
@@ -97,7 +125,7 @@ function allPossibleTypesAreNodeTypes(
   return possibleTypes.every(type => nodesMap.has(type.name))
 }
 
-function combineIdFragments(
+function combineReferenceFragments(
   interfaceName: string,
   possibleTypes: readonly GraphQLObjectType[],
   nodesMap: Map<RemoteTypeName, FragmentDefinitionNode>
@@ -157,4 +185,8 @@ function hasAllIdFields(
     }
   }
   return true
+}
+
+function isTypeName(selection: SelectionNode): boolean {
+  return selection.kind === "Field" && selection.name.value === `__typename`
 }
