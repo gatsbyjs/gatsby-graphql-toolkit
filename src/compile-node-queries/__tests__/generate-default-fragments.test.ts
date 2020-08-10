@@ -309,6 +309,7 @@ describe(`simple types (scalars, objects)`, () => {
         testId
         foo {
           ... on Foo {
+            remoteTypeName: __typename
             testId
           }
         }
@@ -328,6 +329,7 @@ describe(`simple types (scalars, objects)`, () => {
         testId
         selfCycle {
           ... on SelfCycle {
+            remoteTypeName: __typename
             testId
           }
         }
@@ -347,6 +349,7 @@ describe(`simple types (scalars, objects)`, () => {
         testId
         cycle {
           ... on SelfCycle {
+            remoteTypeName: __typename
             testId
           }
         }
@@ -533,6 +536,7 @@ describe(`abstract types (interfaces, unions)`, () => {
         testId
         foo {
           ... on IfaceFoo {
+            remoteTypeName: __typename
             testId
           }
         }
@@ -552,6 +556,7 @@ describe(`abstract types (interfaces, unions)`, () => {
         testId
         foo {
           ... on FooImpl1 {
+            remoteTypeName: __typename
             testId
           }
           ... on FooImpl2 {
@@ -606,9 +611,11 @@ describe(`abstract types (interfaces, unions)`, () => {
         testId
         foo {
           ... on FooImpl1 {
+            remoteTypeName: __typename
             testId
           }
           ... on FooImpl2 {
+            remoteTypeName: __typename
             testId
           }
         }
@@ -627,6 +634,7 @@ describe(`abstract types (interfaces, unions)`, () => {
         testId
         foo {
           ... on FooImpl1 {
+            remoteTypeName: __typename
             testId
           }
           ... on FooImpl2 {
@@ -654,6 +662,7 @@ describe(`abstract types (interfaces, unions)`, () => {
         testId
         cycle {
           ... on IfaceSelfCycle {
+            remoteTypeName: __typename
             testId
           }
         }
@@ -664,6 +673,7 @@ describe(`abstract types (interfaces, unions)`, () => {
         testId
         cycle {
           ... on IfaceSelfCycle {
+            remoteTypeName: __typename
             testId
           }
         }
@@ -675,6 +685,7 @@ describe(`abstract types (interfaces, unions)`, () => {
         testId
         cycle {
           ... on IfaceSelfCycle {
+            remoteTypeName: __typename
             testId
           }
         }
@@ -728,6 +739,7 @@ describe(`abstract types (interfaces, unions)`, () => {
         testId
         cycle {
           ... on IfaceSelfCycleImpl1 {
+            remoteTypeName: __typename
             testId
           }
           ... on IfaceSelfCycleImpl2 {
@@ -745,6 +757,7 @@ describe(`abstract types (interfaces, unions)`, () => {
         testId
         cycle {
           ... on IfaceSelfCycleImpl1 {
+            remoteTypeName: __typename
             testId
           }
           ... on IfaceSelfCycleImpl2 {
@@ -806,6 +819,7 @@ describe(`abstract types (interfaces, unions)`, () => {
         testId
         fooIface {
           ... on FooConflict1 {
+            remoteTypeName: __typename
             testId
           }
           ... on FooConflict2 {
@@ -815,6 +829,7 @@ describe(`abstract types (interfaces, unions)`, () => {
         }
         fooUnion {
           ... on FooConflict1 {
+            remoteTypeName: __typename
             testId
           }
           ... on FooConflict2 {
