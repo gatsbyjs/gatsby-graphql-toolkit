@@ -12,6 +12,7 @@ import {
 import { flatMap } from "lodash"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
 import { addVariableDefinitions } from "./ast-transformers/add-variable-definitions"
+import { aliasFields } from "./ast-transformers/alias-fields"
 import { compileNodeFragments } from "./compile-node-fragments"
 import {
   IGatsbyNodeConfig,
@@ -94,7 +95,7 @@ function compileNodeDocument(args: ICompileNodeDocumentArgs) {
   //
   const typeInfo = new TypeInfo(args.schema)
 
-  return visit(
+  const doc: DocumentNode = visit(
     fullDocument,
     visitWithTypeInfo(
       typeInfo,
@@ -109,10 +110,7 @@ function compileNodeDocument(args: ICompileNodeDocumentArgs) {
                 // 2. Spread for ...NodeTypeId (and other custom selections)
                 // 3. Spreads for all custom fragments
                 return GraphQLAST.selectionSet([
-                  GraphQLAST.field(
-                    `__typename`,
-                    args.gatsbyFieldAliases[`__typename`]
-                  ),
+                  GraphQLAST.field(`__typename`),
                   ...node.selections.filter(
                     selection => !isTypeNameField(selection)
                   ),
@@ -129,6 +127,9 @@ function compileNodeDocument(args: ICompileNodeDocumentArgs) {
       ])
     )
   )
+
+  // FIXME: avoid another visit
+  return visit(doc, aliasFields(args.gatsbyFieldAliases))
 }
 
 function isTypeNameField(node: SelectionNode): boolean {

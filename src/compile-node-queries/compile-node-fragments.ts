@@ -24,7 +24,6 @@ import {
   buildTypeUsagesMap,
   TypeUsagesMap,
 } from "./analyze/build-type-usages-map"
-import { aliasFields } from "./ast-transformers/alias-fields"
 
 interface ICompileNodeFragmentsArgs {
   schema: GraphQLSchema
@@ -153,7 +152,6 @@ function transformIntermediateNodeFragments(
     visitWithTypeInfo(
       typeInfo,
       visitInParallel([
-        aliasFields(context.gatsbyFieldAliases),
         replaceNodeSelectionWithReference(visitContext),
 
         // Remove id fields from node fragments:
