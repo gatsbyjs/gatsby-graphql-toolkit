@@ -1,7 +1,16 @@
-import { GraphQLSchema, DocumentNode, parse } from "graphql"
+import {
+  GraphQLSchema,
+  DocumentNode,
+  parse,
+  FragmentDefinitionNode,
+  TypeInfo,
+  visit,
+  visitWithTypeInfo,
+  visitInParallel
+} from "graphql"
 import { flatMap } from "lodash"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
-import { compileNodeDocument } from "./compile-node-document"
+import { addVariableDefinitions } from "./ast-transformers/add-variable-definitions"
 import { compileNodeFragments } from "./compile-node-fragments"
 import {
   IGatsbyNodeConfig,
@@ -11,7 +20,7 @@ import {
 } from "../types"
 import * as GraphQLAST from "../utils/ast-nodes"
 
-interface ICompileNodeDocumentsArgs {
+interface ICompileNodeQueriesArgs {
   schema: GraphQLSchema
   gatsbyNodeTypes: IGatsbyNodeConfig[]
   gatsbyFieldAliases?: IGatsbyFieldAliases
@@ -29,7 +38,7 @@ export function compileNodeQueries({
   gatsbyNodeTypes,
   gatsbyFieldAliases = defaultGatsbyFieldAliases,
   customFragments,
-}: ICompileNodeDocumentsArgs): Map<RemoteTypeName, DocumentNode> {
+}: ICompileNodeQueriesArgs): Map<RemoteTypeName, DocumentNode> {
   const documents = new Map<RemoteTypeName, DocumentNode>()
   const allFragmentDocs: DocumentNode[] = []
   customFragments.forEach(fragmentString => {
@@ -58,4 +67,55 @@ export function compileNodeQueries({
   })
 
   return documents
+}
+
+interface ICompileNodeDocumentArgs {
+  gatsbyNodeType: IGatsbyNodeConfig
+  gatsbyFieldAliases: IGatsbyFieldAliases
+  schema: GraphQLSchema
+  queries: DocumentNode
+  fragments: FragmentDefinitionNode[]
+}
+
+function compileNodeDocument(args: ICompileNodeDocumentArgs) {
+  const fullDocument: DocumentNode = {
+    ...args.queries,
+    definitions: args.queries.definitions.concat(args.fragments),
+  }
+
+  // Expected query variants:
+  //  1. { allUser }
+  //  2. { allNode(type: "User") }
+  //
+  // We want to transform them to:
+  //  1. { allUser { ...UserFragment1 ...UserFragment2 }}
+  //  2. { allNode(type: "User") { ...UserFragment1 ...UserFragment2 }}
+  //
+  const typeInfo = new TypeInfo(args.schema)
+
+  return visit(
+    fullDocument,
+    visitWithTypeInfo(
+      typeInfo,
+      visitInParallel([
+        {
+          FragmentDefinition: () => false, // skip fragments
+          SelectionSet: {
+            leave: node => {
+              if (node.selections.some(GraphQLAST.isFragmentSpread)) {
+                return GraphQLAST.selectionSet([
+                  ...node.selections,
+                  ...args.fragments.map(fragment =>
+                    GraphQLAST.fragmentSpread(fragment.name.value)
+                  ),
+                ])
+              }
+              return undefined
+            }
+          },
+        },
+        addVariableDefinitions({ typeInfo }),
+      ])
+    )
+  )
 }
