@@ -3,6 +3,7 @@ import {
   print,
   FieldNode,
   visitInParallel,
+  visitWithTypeInfo,
   GraphQLSchema,
   GraphQLField,
   GraphQLObjectType,
@@ -18,7 +19,7 @@ import {
   isNonNullType,
   Visitor,
   ASTKindToNode,
-  FragmentSpreadNode,
+  FragmentSpreadNode, TypeInfo
 } from "graphql"
 import * as GraphQLAST from "../utils/ast-nodes"
 import {
@@ -28,7 +29,7 @@ import {
   RemoteTypeName,
 } from "../types"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
-import { aliasFields } from "./ast-transformers/alias-fields"
+import { aliasGatsbyNodeFields } from "./ast-transformers/alias-gatsby-node-fields"
 import { stripWrappingFragments } from "./ast-transformers/strip-wrapping-fragments"
 import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
 
@@ -66,6 +67,8 @@ export function generateDefaultFragmentNodes(
       ...defaultGatsbyFieldAliases,
       ...config.gatsbyFieldAliases,
     },
+    schema: config.schema,
+    gatsbyNodeTypes: config.gatsbyNodeTypes,
     fragmentMap: buildTypeFragmentMap(config),
     nodeReferenceFragmentMap: buildNodeReferenceFragmentMap(config),
   }
@@ -80,9 +83,11 @@ export function generateDefaultFragmentNodes(
 }
 
 interface IGenerateDefaultFragmentContext {
+  schema: GraphQLSchema,
   gatsbyFieldAliases: IGatsbyFieldAliases
   fragmentMap: FragmentMap
   nodeReferenceFragmentMap: FragmentMap
+  gatsbyNodeTypes: IGatsbyNodeConfig[]
 }
 
 function generateDefaultFragment(
@@ -97,13 +102,17 @@ function generateDefaultFragment(
   // Note:
   //  if some visitor edits a node, the next visitors won't see this node
   //  so conflicts are possible (in this case several passes are required)
+  const typeInfo = new TypeInfo(context.schema)
+
+  const visitor = visitInParallel([
+    inlineNamedFragments(context),
+    aliasGatsbyNodeFields({ ...context, typeInfo }),
+    stripWrappingFragments(),
+  ])
+
   return visit(
     fragment,
-    visitInParallel([
-      inlineNamedFragments(context),
-      aliasFields(context.gatsbyFieldAliases),
-      stripWrappingFragments(),
-    ])
+    visitWithTypeInfo(typeInfo, visitor)
   )
 }
 

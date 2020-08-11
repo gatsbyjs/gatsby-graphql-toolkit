@@ -412,7 +412,7 @@ describe(`simple types (scalars, objects)`, () => {
     `)
   })
 
-  it(`aliases internal Gatsby fields`, () => {
+  it(`aliases internal Gatsby fields on node types`, () => {
     const result = generateDefaultFragments({
       schema,
       gatsbyNodeTypes: [nodeTypes.WithGatsbyFields],
@@ -427,10 +427,10 @@ describe(`simple types (scalars, objects)`, () => {
         remoteChildren: children
         remoteFields: fields {
           ... on GatsbyFields {
-            remoteId: id
-            remoteInternal: internal
-            remoteParent: parent
-            remoteChildren: children
+            id
+            internal
+            parent
+            children
           }
         }
       }
