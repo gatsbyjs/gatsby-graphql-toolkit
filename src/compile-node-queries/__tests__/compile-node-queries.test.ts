@@ -2,7 +2,7 @@ import { parse, print, buildSchema, DocumentNode } from "graphql"
 import { compileNodeQueries } from "../compile-node-queries"
 import { IGatsbyNodeConfig, RemoteTypeName } from "../../types"
 
-describe(`Schema with simple types`, () => {
+describe(`Happy path`, () => {
   const schema = buildSchema(`
     enum FooBarEnum {
       FOO
@@ -34,12 +34,19 @@ describe(`Schema with simple types`, () => {
       children: String
       fields: GatsbyFields
     }
+    type Query {
+      allFoo: [Foo]
+      allBar: [Bar]
+      allGatsbyFields: [GatsbyFields]
+      allWithGatsbyFields: [WithGatsbyFields]
+    }
   `)
 
   const nodeTypes: {
     Foo: IGatsbyNodeConfig
     Bar: IGatsbyNodeConfig
     WithGatsbyFields: IGatsbyNodeConfig
+    GatsbyFields: IGatsbyNodeConfig
   } = {
     Foo: {
       remoteTypeName: `Foo`,
@@ -54,6 +61,13 @@ describe(`Schema with simple types`, () => {
         query LIST_Bar { allBar { ...BarId } }
         fragment BarId on Bar { testId }
       `,
+    },
+    GatsbyFields: {
+      remoteTypeName: `GatsbyFields`,
+      queries: `
+        query LIST_GatsbyFields { allGatsbyFields { ...GatsbyFieldsId } }
+        fragment GatsbyFieldsId on GatsbyFields { id }
+      `
     },
     WithGatsbyFields: {
       remoteTypeName: `WithGatsbyFields`,
@@ -258,7 +272,76 @@ describe(`Schema with simple types`, () => {
     `)
   })
 
-  it(`aliases internal Gatsby fields`, () => {
+  it(`aliases internal Gatsby fields on node types`, () => {
+    const fragment = `
+      fragment WithGatsbyFields on WithGatsbyFields {
+        id
+        internal
+        parent
+        children
+        fields {
+          id
+          internal
+          parent
+          children
+        }
+      }
+    `
+    const queries = compileNodeQueries({
+      schema,
+      gatsbyNodeTypes: [nodeTypes.WithGatsbyFields, nodeTypes.GatsbyFields],
+      customFragments: [fragment],
+    })
+
+    expect(queries.size).toEqual(2)
+    expect(printQuery(queries, `WithGatsbyFields`)).toEqual(dedent`
+      query LIST_WithGatsbyFields {
+        allWithGatsbyFields {
+          remoteTypeName: __typename
+          ...WithGatsbyFieldsId
+          ...WithGatsbyFields
+        }
+      }
+      
+      fragment WithGatsbyFieldsId on WithGatsbyFields {
+        remoteTypeName: __typename
+        remoteId: id
+      }
+
+      fragment WithGatsbyFields on WithGatsbyFields {
+        remoteId: id
+        remoteInternal: internal
+        remoteParent: parent
+        remoteChildren: children
+        remoteFields: fields {
+          remoteTypeName: __typename
+          remoteId: id
+        }
+      }
+    `)
+    expect(printQuery(queries, `GatsbyFields`)).toEqual(dedent`
+      query LIST_GatsbyFields {
+        allGatsbyFields {
+          remoteTypeName: __typename
+          ...GatsbyFieldsId
+          ...WithGatsbyFields__fields
+        }
+      }
+      
+      fragment GatsbyFieldsId on GatsbyFields {
+        remoteId: id
+      }
+      
+      fragment WithGatsbyFields__fields on GatsbyFields {
+        remoteId: id
+        remoteInternal: internal
+        remoteParent: parent
+        remoteChildren: children
+      }
+    `)
+  })
+
+  it(`doesn't alias internal Gatsby fields on non-node types`, () => {
     const fragment = `
       fragment WithGatsbyFields on WithGatsbyFields {
         id
@@ -300,10 +383,10 @@ describe(`Schema with simple types`, () => {
         remoteParent: parent
         remoteChildren: children
         remoteFields: fields {
-          remoteId: id
-          remoteInternal: internal
-          remoteParent: parent
-          remoteChildren: children
+          id
+          internal
+          parent
+          children
         }
       }
     `)
@@ -311,13 +394,17 @@ describe(`Schema with simple types`, () => {
 
   it.todo(`supports complex ID fields`)
   it.todo(`adds remoteTypeName field`)
+
+  describe(`Abstract types`, () => {})
+
+  describe(`Variables`, () => {
+    it.todo(`adds variable declarations automatically`)
+    it.todo(`supports complex input variables`)
+  })
 })
 
-describe(`Schema with abstract types`, () => {})
-
-describe(`Variables`, () => {
-  it.todo(`adds variable declarations automatically`)
-  it.todo(`supports complex input variables`)
+describe(`Errors`, () => {
+  // TODO
 })
 
 function printQuery(

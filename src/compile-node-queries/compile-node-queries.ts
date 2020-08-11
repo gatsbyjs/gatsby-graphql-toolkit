@@ -12,7 +12,7 @@ import {
 import { flatMap } from "lodash"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
 import { addVariableDefinitions } from "./ast-transformers/add-variable-definitions"
-import { aliasFields } from "./ast-transformers/alias-fields"
+import { aliasGatsbyNodeFields } from "./ast-transformers/alias-gatsby-node-fields"
 import { compileNodeFragments } from "./compile-node-fragments"
 import {
   IGatsbyNodeConfig,
@@ -60,8 +60,9 @@ export function compileNodeQueries({
   gatsbyNodeTypes.forEach(config => {
     const def = compileNodeDocument({
       schema,
-      gatsbyNodeType: config,
+      gatsbyNodeTypes,
       gatsbyFieldAliases,
+      remoteTypeName: config.remoteTypeName,
       queries: parse(config.queries),
       fragments: nodeFragmentMap.get(config.remoteTypeName)!, // FIXME
     })
@@ -72,7 +73,8 @@ export function compileNodeQueries({
 }
 
 interface ICompileNodeDocumentArgs {
-  gatsbyNodeType: IGatsbyNodeConfig
+  remoteTypeName: RemoteTypeName
+  gatsbyNodeTypes: Array<IGatsbyNodeConfig>
   gatsbyFieldAliases: IGatsbyFieldAliases
   schema: GraphQLSchema
   queries: DocumentNode
@@ -93,7 +95,7 @@ function compileNodeDocument(args: ICompileNodeDocumentArgs) {
   //  1. { allUser { ...UserFragment1 ...UserFragment2 }}
   //  2. { allNode(type: "User") { ...UserFragment1 ...UserFragment2 }}
   //
-  const typeInfo = new TypeInfo(args.schema)
+  let typeInfo = new TypeInfo(args.schema)
 
   const doc: DocumentNode = visit(
     fullDocument,
@@ -129,7 +131,11 @@ function compileNodeDocument(args: ICompileNodeDocumentArgs) {
   )
 
   // FIXME: avoid another visit
-  return visit(doc, aliasFields(args.gatsbyFieldAliases))
+  typeInfo = new TypeInfo(args.schema)
+  return visit(
+    doc,
+    visitWithTypeInfo(typeInfo, aliasGatsbyNodeFields({ ...args, typeInfo }))
+  )
 }
 
 function isTypeNameField(node: SelectionNode): boolean {
