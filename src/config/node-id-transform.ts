@@ -1,5 +1,4 @@
 import {
-  IGatsbyFieldAliases,
   IGatsbyNodeDefinition,
   INodeIdTransform,
   IRemoteNode,
@@ -11,9 +10,7 @@ import { flatMap } from "lodash"
 import { FragmentDefinitionNode, SelectionNode } from "graphql"
 import { isField, isFragment } from "../utils/ast-nodes"
 
-export function createNodeIdTransform(
-  gatsbyFieldAliases: IGatsbyFieldAliases
-): INodeIdTransform {
+export function createNodeIdTransform(): INodeIdTransform {
   return {
     remoteNodeToGatsbyId(
       remoteNode: IRemoteNode,
@@ -71,12 +68,15 @@ export function createNodeIdTransform(
       const nestedFields: ReadonlyArray<SelectionNode> =
         selection.selectionSet?.selections ?? []
 
-      const fieldName =
-        gatsbyFieldAliases[selection.name.value] ?? selection.name.value
+      const alias = selection.alias ?? selection.name
+      const fieldName = alias.value
 
       const fieldValue = obj[fieldName]
       if (isNullish(fieldValue)) {
-        throw new Error("ID Field value cannot be nullish")
+        throw new Error(
+          `Value of the ID field "${fieldName}" can't be nullish. ` +
+            `Got object with keys: ${Object.keys(obj).join(`, `)}`
+        )
       }
       if (nestedFields.length > 0 && typeof fieldValue !== `object`) {
         throw new Error("Expecting object value for a field with selection")

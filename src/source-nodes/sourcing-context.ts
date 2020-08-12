@@ -12,7 +12,7 @@ export function createSourcingContext(
     config.gatsbyFieldAliases ?? defaultGatsbyFieldAliases
 
   const {
-    idTransform = createNodeIdTransform(gatsbyFieldAliases),
+    idTransform = createNodeIdTransform(),
     typeNameTransform = createTypeNameTransform(config.gatsbyTypePrefix),
     paginationAdapters = PaginationAdapters,
   } = config
