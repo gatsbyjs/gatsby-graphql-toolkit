@@ -7,17 +7,18 @@ Update your node type configs like this to account for this change:
 ```diff
 const gatsbyNodeTypes = [
   {
--   remoteIdFields: [`__typename`, `entityId`],
+    remoteTypeName: `Post`,
+-   remoteIdFields: [`__typename`, `id`],
     queries: `
-      query LIST_NodeArticle {
-        nodeQuery(limit: $limit offset: $offset) {
--         entities
-+         entities { ...NodeArticleID }
-        }
+      query LIST_POSTS {
+-       posts(limit: $limit offset: $offset)
++       posts(limit: $limit offset: $offset) {
++         ..._PostId_
++       }
       }
-+     fragment NodeArticleID on NodeArticle {
++     fragment _PostId_ on Post {
 +       __typename
-+       entityId
++       id
 +     }
     `,
   },
