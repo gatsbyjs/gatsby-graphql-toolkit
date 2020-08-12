@@ -119,13 +119,21 @@ async function createSourcingConfig(gatsbyApi) {
   const gatsbyNodeTypes = [
     {
       remoteTypeName: `Post`,
-      remoteIdFields: [`__typename`, `id`],
-      queries: `query LIST_POSTS { posts(limit: $limit, offset: $offset) }`,
+      queries: `
+        query LIST_POSTS {
+          posts(limit: $limit, offset: $offset) { ..._PostId_ }
+        }
+        fragment _PostId_ on Post { __typename id }
+      `,
     },
     {
       remoteTypeName: `Author`,
-      remoteIdFields: [`__typename`, `id`],
-      queries: `query LIST_AUTHORS { authors(limit: $limit, offset: $offset) }`,
+      queries: `
+        query LIST_AUTHORS {
+          authors(limit: $limit, offset: $offset) { ..._AuthorId_ }
+        }
+        fragment _AuthorId_ on Author { __typename id }
+      `,
     },
   ]
 
@@ -183,8 +191,12 @@ Use [`loadSchema`](#loadschema) to fetch the remote schema and re-construct it l
 const gatsbyNodeTypes = [
   {
     remoteTypeName: `Post`,
-    remoteIdFields: [`__typename`, `id`],
-    queries: `query LIST_POSTS { posts(limit: $limit, offset: $offset) }`,
+    queries: `
+      query LIST_POSTS {
+        posts(limit: $limit, offset: $offset) { ..._PostId_ }
+      }
+      fragment _PostId_ on Post { __typename id }
+    `,
   },
   // ... other node types
 ]
@@ -199,14 +211,17 @@ Settings explained:
   - Build Gatsby node type name as follows: `${gatsbyTypePrefix}${remoteTypeName}` ([customizable](#type-name-transformer)).
   - Discover and resolve relationships between node types in the schema.
 
-- `remoteIdFields` are necessary to:
+- `queries` are required for node sourcing.
+  They are combined with custom [GraphQL fragments][17] for actual data fetching (see the next two steps).
 
-  - Construct a Gatsby node id (a concatenation of all remote id fields)
+  Queries must contain a single GraphQL fragment with ID fields of this node type. ID fields are necessary to:
+
+  - Construct a Gatsby node id (a concatenation of all fragment id fields)
   - Re-fetch individual nodes by `id` (e.g., to support previews and delta sourcing)
   - Resolve node relationships in Gatsby schema customization
 
-- `queries` are for node sourcing (without field selections).
-  Those are combined with custom fragments for actual data fetching (see the next two steps).
+  Variable definitions could be omitted (the toolkit will add them for you).
+
 
 ### 3. Define fields to be fetched (using GraphQL fragments)
 
@@ -214,13 +229,13 @@ This step is probably the most important for the whole process.
 It enables different workflows with a high granularity of sourcing.
 
 This example demonstrates one possible workflow - [automatic fragment generation](#generatedefaultfragments)
-on each run:
+on each run.
 
 ```js
 const fragments = generateDefaultFragments({ schema, gatsbyNodeTypes })
 ```
 
-This call generates the following ([customizable](#generatedefaultfragments)) fragments:
+Generated fragments include all possible fields of a type ([customizable](#generatedefaultfragments)):
 
 ```graphql
 fragment Post on Post {
@@ -269,7 +284,7 @@ You'll see how this change affects sourcing queries in the next step.
 
 ### 4. Compile sourcing queries
 
-In this step, you'll combine node configurations ([step 2](#2-configure-gatsby-node-types))
+In this step, you'll combine queries from node configurations ([step 2](#2-configure-gatsby-node-types))
 with custom fragments ([step 3](#3-define-fields-to-be-fetched-using-graphql-fragments))
 and compile final queries for node sourcing:
 
@@ -289,10 +304,15 @@ For this example, the toolkit will compile two documents (for `Post` and `Author
 query LIST_POSTS($limit: Int, $offset: Int) {
   posts(limit: $limit, offset: $offset) {
     remoteTypeName: __typename
-    remoteId: id
+    ..._PostId_
     ...Post
     ...CustomizedAuthorFragment__allPosts
   }
+}
+
+fragment _PostId_ on Post {
+  remoteTypeName: __typename
+  remoteId: id
 }
 
 fragment Post on Post {
@@ -315,9 +335,14 @@ fragment CustomizedAuthorFragment__allPosts on Post {
 query LIST_AUTHORS($limit: Int, $offset: Int) {
   authors(limit: $limit, offset: $offset) {
     remoteTypeName: __typename
-    remoteId: id
+    ..._AuthorId_
     ...CustomizedAuthorFragment
   }
+}
+
+fragment _AuthorId_ on Author {
+  remoteTypeName: __typename
+  remoteId: id
 }
 
 fragment CustomizedAuthorFragment on Author {
@@ -332,7 +357,7 @@ fragment CustomizedAuthorFragment on Author {
 
 Note how the `excerpt` field has been moved from `CustomizedAuthorFragment` to the
 `CustomizedAuthorFragment__allPosts` in the `Post` document
-(and fields from `remoteIdFields` list have been added in its place).
+(and fields from the `_PostId_` fragment have been added in its place).
 
 Also, note the toolkit automatically adds field aliases for reserved Gatsby fields
 (`id`, `internal`, `parent`, `children` and [`__typename` meta field][10])
@@ -371,14 +396,14 @@ type ExampleAuthor implements Node @dontInfer {
 
 > as well as custom resolvers for `ExamplePost.author` and `ExampleAuthor.allPosts` to resolve relationships
 
-The toolkit uses the remote schema as a reference, but doesn't clone it.
+The toolkit uses the remote schema as a reference, but doesn't fully copy it.
 
-Instead, it takes all the fields from the sourcing query (including aliased fields)
-and adds them to Gatsby node type with slight changes:
+Instead, it takes all the fields from the sourcing query and adds them to Gatsby node type with slight changes:
 
 - every type name is prefixed with `gatsbyTypePrefix` setting (`Post` => `ExamplePost` in our case)
 - all field arguments are removed
 - type of the field remains semantically the same as in the remote schema
+- aliased fields from the query are added to the type itself
 
 ---
 
@@ -414,9 +439,14 @@ Let's take another look at one of the queries:
 query LIST_AUTHORS($limit: Int, $offset: Int) {
   authors(limit: $limit, offset: $offset) {
     remoteTypeName: __typename
-    remoteId: id
+    ..._AuthorId_
     ...CustomizedAuthorFragment
   }
+}
+
+fragment _AuthorId_ on Author {
+  remoteTypeName: __typename
+  remoteId: id
 }
 
 fragment CustomizedAuthorFragment on Author {
@@ -477,19 +507,22 @@ to support individual node re-fetching:
 const gatsbyNodeTypes = [
   {
     remoteTypeName: `Post`,
-    remoteIdFields: [`__typename`, `id`],
--   queries: `query LIST_POSTS { posts(limit: $limit, offset: $offset) }`,
-+   queries: `
-+       query LIST_POSTS { posts(limit: $limit, offset: $offset) }
-+       query NODE_POST { post(id: $id) }
-+   `,
+    queries: `
+      query LIST_POSTS {
+        posts(limit: $limit, offset: $offset) { ..._PostId_ }
+      }
++     query NODE_POST {
++       post(id: $id) } { ..._PostId_ }
++     }
+      fragment _PostId_ on Post { __typename id }
+    `,
   },
   // ... other node types
 ]
 ```
 
 When compiling queries in [step 4](#4-compile-sourcing-queries), the toolkit will spread
-all of your fragments in both queries, so the shape of the node will be identical when
+all of your custom fragments in both queries, so the shape of the node will be identical when
 executing `LIST_POSTS` or `NODE_POST`.
 
 Next, modify `sourceNodes` in `gatsby-node.js`:
@@ -542,8 +575,8 @@ The toolkit only cares about remote IDs of the nodes that have changed:
 - For the `UPDATE` event, it will re-fetch nodes individually using `NODE_POST` query we defined above.
 - For the `DELETE` event, it will delete corresponding Gatsby nodes (without further requests to your API).
 
-The `remoteId` field here must contain values for **all** of the `remoteIdFields`
-defined in Gatsby node config above (in this example: `__typename` and `id`).
+The `remoteId` field here must contain values for **all** of the fields declared in the ID fragment
+(in this example: `__typename` and `id`).
 They will be passed to the `NODE_POST` query as variables.
 
 ## Automatic Pagination Explained
@@ -589,7 +622,6 @@ interface ISourcingConfig {
 
 interface IGatsbyNodeDefinition {
   remoteTypeName: RemoteTypeName
-  remoteIdFields: string[]
   document: DocumentNode
   nodeQueryVariables: (id: IRemoteId) => object
 }
@@ -866,14 +898,31 @@ type Name {
   firstName: String
   lastName: String
 }
+
+type Query {
+  posts: [Post]
+  authors: [Author]
+}
 ```
 
 Define `gatsbyNodeTypes` option as:
 
 ```js
 const gatsbyNodeTypes = [
-  { remoteTypeName: `Post`, remoteIdFields: [`id`] },
-  { remoteTypeName: `Author`, remoteIdFields: [`id`] },
+  {
+    remoteTypeName: `Post`,
+    queries: `
+      query LIST_Post { posts { ..._PostId_ } }
+      fragment _PostId_ on Post { id }
+    `,
+  },
+  {
+    remoteTypeName: `Author`,
+    queries: `
+      query LIST_Author { authors { ..._AuthorId_ } }
+      fragment _AuthorId_ on Author { id }
+    `,
+  },
 ]
 ```
 
@@ -909,8 +958,7 @@ Things to notice:
    would have been added. It is possible to workaround this by using `defaultArgumentValues`
    config option.
 
-2. Selection of the field `Post.author` contains fields listed in `remoteIdFields`
-   for type `Author` (applies for any type from the `gatsbyNodeTypes` list).
+2. Selection of the field `Post.author` contains fields listed in `_AuthorId_` fragment.
    It is prefixed with `remoteId` because `id` is an internal Gatsby field.
    So [Gatsby field aliases](#gatsby-field-aliases) are used to avoid conflicts during
    sourcing.
@@ -1048,7 +1096,7 @@ interface ISourceChanges {
 
 ## TODO:
 
-- [ ] Allow complex nested `remoteIdFields`
+- [x] Allow complex nested id fields
 - [ ] Mime-type mapping on nodes
 - [ ] Ignore deleted nodes when resolving references
 - [ ] Allow custom arguments in schema customization?
@@ -1074,3 +1122,4 @@ interface ISourceChanges {
 [14]: https://github.com/node-fetch/node-fetch
 [15]: https://graphql.org/graphql-js/type/#graphqlschema
 [16]: https://graphql.org/graphql-js/utilities/#buildclientschema
+[17]: https://graphql.org/learn/queries/#fragments
