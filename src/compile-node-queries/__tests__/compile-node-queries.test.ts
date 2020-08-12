@@ -8,18 +8,35 @@ describe(`Happy path`, () => {
       FOO
       BAR
     }
-    type Foo {
+    interface Node {
+      testId: ID
+      createdAt: Int
+      updatedAt: Int
+    }
+    interface WithFoo {
+      testId: ID
+      foo: Foo
+    }
+    interface WithNode {
+      node: Node
+    }
+    type Foo implements Node {
       testId: ID
       string: String
       int: Int
       float: Float
       enum: FooBarEnum
       withWrappers: [String!]!
+      createdAt: Int
+      updatedAt: Int
     }
-    type Bar {
+    type Bar implements Node & WithFoo & WithNode {
       testId: ID
       foo: Foo
+      node: Node
       bar: String
+      createdAt: Int
+      updatedAt: Int
     }
     type GatsbyFields {
       id: ID
@@ -47,9 +64,13 @@ describe(`Happy path`, () => {
       id: ComplexId
       withComplexId1: WithComplexId1
     }
+    input Page {
+      pageNumber: Int
+      perPage: Int
+    }
     type Query {
-      allFoo: [Foo]
-      allBar: [Bar]
+      allFoo(limit: Int = 10 offset: Int = 0): [Foo]
+      allBar(page: Page): [Bar]
       allGatsbyFields: [GatsbyFields]
       allWithGatsbyFields: [WithGatsbyFields]
       allWithComplexId1: [WithComplexId1]
@@ -508,11 +529,175 @@ describe(`Happy path`, () => {
     `)
   })
 
-  describe(`Abstract types`, () => {})
+  describe(`Abstract types`, () => {
+    it(`includes fragments on interface type to source queries of all implementing nodes`, () => {
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
+        customFragments: [
+          `
+            fragment NodeFragment on Node {
+              createdAt
+            }
+          `,
+        ],
+      })
+
+      expect(queries.size).toEqual(2)
+      expect(printQuery(queries, `Foo`)).toEqual(dedent`
+        query LIST_Foo {
+          allFoo {
+            remoteTypeName: __typename
+            ...FooId
+            ...NodeFragment
+          }
+        }
+        fragment FooId on Foo {
+          testId
+        }
+        fragment NodeFragment on Node {
+          createdAt
+        }
+      `)
+      expect(printQuery(queries, `Bar`)).toEqual(dedent`
+        query LIST_Bar {
+          allBar {
+            remoteTypeName: __typename
+            ...BarId
+            ...NodeFragment
+          }
+        }
+        fragment BarId on Bar {
+          testId
+        }
+        fragment NodeFragment on Node {
+          createdAt
+        }
+      `)
+    })
+
+    it(`replaces other node selections with reference within interface fragments`, () => {
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
+        customFragments: [
+          `
+            fragment FooFragment on WithFoo {
+              foo {
+                enum
+              }
+            }
+            fragment NodeFragment on WithNode {
+              node {
+                createdAt
+              }
+            }
+          `,
+        ],
+      })
+      expect(printQuery(queries, `Bar`)).toEqual(dedent`
+        query LIST_Bar {
+          allBar {
+            remoteTypeName: __typename
+            ...BarId
+            ...NodeFragment__node
+            ...FooFragment
+            ...NodeFragment
+          }
+        }
+        fragment BarId on Bar {
+          testId
+        }
+        fragment NodeFragment__node on Node {
+          createdAt
+        }
+        fragment FooFragment on WithFoo {
+          foo {
+            remoteTypeName: __typename
+            testId
+          }
+        }
+        fragment NodeFragment on WithNode {
+          node {
+            remoteTypeName: __typename
+            testId
+          }
+        }
+      `)
+    })
+  })
 
   describe(`Variables`, () => {
-    it.todo(`adds variable declarations automatically`)
-    it.todo(`supports complex input variables`)
+    it(`adds variable declarations automatically`, () => {
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [
+          {
+            remoteTypeName: `Foo`,
+            queries: `
+              query LIST_Foo { allFoo(limit: $limit offset: $offset) { ...FooId } }
+              fragment FooId on Foo { testId }
+            `,
+          },
+        ],
+        customFragments: [
+          `fragment Foo on Foo { createdAt }`
+        ]
+      })
+
+      expect(queries.size).toEqual(1)
+      expect(printQuery(queries, `Foo`)).toEqual(dedent`
+        query LIST_Foo($limit: Int, $offset: Int) {
+          allFoo(limit: $limit, offset: $offset) {
+            remoteTypeName: __typename
+            ...FooId
+            ...Foo
+          }
+        }
+        
+        fragment FooId on Foo {
+          testId
+        }
+        
+        fragment Foo on Foo {
+          createdAt
+        }
+      `)
+    })
+    it(`supports complex input variables`, () => {
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [
+          {
+            remoteTypeName: `Bar`,
+            queries: `
+              query LIST_Bar { allBar(page: $page) { ...BarId } }
+              fragment BarId on Bar { testId }
+            `,
+          },
+        ],
+        customFragments: [
+          `fragment Bar on Bar { createdAt }`
+        ]
+      })
+
+      expect(queries.size).toEqual(1)
+      expect(printQuery(queries, `Bar`)).toEqual(dedent`
+        query LIST_Bar($page: Page) {
+          allBar(page: $page) {
+            remoteTypeName: __typename
+            ...BarId
+            ...Bar
+          }
+        }
+        fragment BarId on Bar {
+          testId
+        }
+        fragment Bar on Bar {
+          createdAt
+        }
+      `)
+    })
   })
 })
 
