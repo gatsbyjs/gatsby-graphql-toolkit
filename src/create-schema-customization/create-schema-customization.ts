@@ -22,7 +22,7 @@ export function createSchemaCustomizationContext(
     config.gatsbyFieldAliases ?? defaultGatsbyFieldAliases
 
   const {
-    idTransform = createNodeIdTransform(gatsbyFieldAliases),
+    idTransform = createNodeIdTransform(),
     typeNameTransform = createTypeNameTransform(config.gatsbyTypePrefix),
   } = config
 
