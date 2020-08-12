@@ -34,11 +34,26 @@ describe(`Happy path`, () => {
       children: String
       fields: GatsbyFields
     }
+    type ComplexId {
+      kind: String
+      uid: String
+    }
+    type WithComplexId1 {
+      id: ComplexId
+      withComplexId2: WithComplexId2
+    }
+    type WithComplexId2 {
+      testId: String
+      id: ComplexId
+      withComplexId1: WithComplexId1
+    }
     type Query {
       allFoo: [Foo]
       allBar: [Bar]
       allGatsbyFields: [GatsbyFields]
       allWithGatsbyFields: [WithGatsbyFields]
+      allWithComplexId1: [WithComplexId1]
+      allWithComplexId2: [WithComplexId2]
     }
   `)
 
@@ -47,6 +62,8 @@ describe(`Happy path`, () => {
     Bar: IGatsbyNodeConfig
     WithGatsbyFields: IGatsbyNodeConfig
     GatsbyFields: IGatsbyNodeConfig
+    WithComplexId1: IGatsbyNodeConfig
+    WithComplexId2: IGatsbyNodeConfig
   } = {
     Foo: {
       remoteTypeName: `Foo`,
@@ -67,18 +84,32 @@ describe(`Happy path`, () => {
       queries: `
         query LIST_GatsbyFields { allGatsbyFields { ...GatsbyFieldsId } }
         fragment GatsbyFieldsId on GatsbyFields { id }
-      `
+      `,
     },
     WithGatsbyFields: {
       remoteTypeName: `WithGatsbyFields`,
       queries: `
         query LIST_WithGatsbyFields { allWithGatsbyFields { ...WithGatsbyFieldsId } }
         fragment WithGatsbyFieldsId on WithGatsbyFields { __typename id }
-      `
-    }
+      `,
+    },
+    WithComplexId1: {
+      remoteTypeName: `WithComplexId1`,
+      queries: `
+        query LIST_WithComplexId1 { allWithComplexId1 { ...WithComplexId1_Id } }
+        fragment WithComplexId1_Id on WithComplexId1 { id { kind uid } }
+      `,
+    },
+    WithComplexId2: {
+      remoteTypeName: `WithComplexId2`,
+      queries: `
+        query LIST_WithComplexId2 { allWithComplexId2 { ...WithComplexId2_Id } }
+        fragment WithComplexId2_Id on WithComplexId2 { testId id { uid } }
+      `,
+    },
   }
 
-  it(`adds __typename in the top-level query`, () => {
+  it(`adds __typename in the top-level node field`, () => {
     const queries = compileNodeQueries({
       schema,
       gatsbyNodeTypes: [nodeTypes.Foo],
@@ -152,7 +183,7 @@ describe(`Happy path`, () => {
     `)
   })
 
-  it(`replaces node selections with reference`, () => {
+  it(`replaces other node selections with reference`, () => {
     const queries = compileNodeQueries({
       schema,
       gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
@@ -392,8 +423,90 @@ describe(`Happy path`, () => {
     `)
   })
 
-  it.todo(`supports complex ID fields`)
-  it.todo(`adds remoteTypeName field`)
+  it(`supports complex ID fields`, () => {
+    const queries = compileNodeQueries({
+      schema,
+      gatsbyNodeTypes: [nodeTypes.WithComplexId1, nodeTypes.WithComplexId2],
+      customFragments: [
+        `
+          fragment Foo on WithComplexId1 {
+            withComplexId2 { testId }
+          }
+        `,
+        `
+          fragment Bar on WithComplexId2 {
+            withComplexId1 { id { uid } }
+          }
+        `,
+      ],
+    })
+
+    expect(queries.size).toEqual(2)
+    expect(printQuery(queries, `WithComplexId1`)).toEqual(dedent`
+      query LIST_WithComplexId1 {
+        allWithComplexId1 {
+          remoteTypeName: __typename
+          ...WithComplexId1_Id
+          ...Foo
+          ...Bar__withComplexId1
+        }
+      }
+      
+      fragment WithComplexId1_Id on WithComplexId1 {
+        remoteId: id {
+          kind
+          uid
+        }
+      }
+      
+      fragment Foo on WithComplexId1 {
+        withComplexId2 {
+          remoteTypeName: __typename
+          testId
+          remoteId: id {
+            uid
+          }
+        }
+      }
+      
+      fragment Bar__withComplexId1 on WithComplexId1 {
+        remoteId: id {
+          uid
+        }
+      }
+    `)
+    expect(printQuery(queries, `WithComplexId2`)).toEqual(dedent`
+      query LIST_WithComplexId2 {
+        allWithComplexId2 {
+          remoteTypeName: __typename
+          ...WithComplexId2_Id
+          ...Foo__withComplexId2
+          ...Bar
+        }
+      }
+      
+      fragment WithComplexId2_Id on WithComplexId2 {
+        testId
+        remoteId: id {
+          uid
+        }
+      }
+      
+      fragment Foo__withComplexId2 on WithComplexId2 {
+        testId
+      }
+
+      fragment Bar on WithComplexId2 {
+        withComplexId1 {
+          remoteTypeName: __typename
+          remoteId: id {
+            kind
+            uid
+          }
+        }
+      }
+    `)
+  })
 
   describe(`Abstract types`, () => {})
 
