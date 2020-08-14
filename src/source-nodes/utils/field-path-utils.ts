@@ -118,7 +118,7 @@ export function findFieldPath(
   return fieldPath
 }
 
-export function getFirstValueByPath(item: unknown, path: string[]) {
+export function getFirstValueByPath(item: unknown, path: string[]): unknown {
   if (path.length === 0) {
     return item
   }
