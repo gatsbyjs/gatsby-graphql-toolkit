@@ -3,6 +3,7 @@ import {
   GraphQLObjectType,
   isInterfaceType,
   isObjectType,
+  TypeNameMetaFieldDef,
 } from "graphql"
 import { GatsbyGraphQLObjectType } from "gatsby"
 import { ISchemaCustomizationContext, IGatsbyFieldInfo } from "../types"
@@ -64,9 +65,6 @@ function collectGatsbyTypeFields(
   for (const type of collectFromTypes) {
     const fetchedFields = fetchedTypeMap.get(type.name) ?? []
     for (const { name, alias } of fetchedFields.values()) {
-      if (name === `__typename`) {
-        continue
-      }
       collectedFields.push({
         gatsbyFieldName: alias,
         remoteFieldName: name,
@@ -84,7 +82,9 @@ function buildFieldConfig(
   fieldInfo: IGatsbyFieldInfo,
   remoteParentType: GraphQLInterfaceType | GraphQLObjectType
 ): any {
-  const remoteField = remoteParentType.getFields()[fieldInfo.remoteFieldName]
+  const remoteField = fieldInfo.remoteFieldName === `__typename`
+    ? TypeNameMetaFieldDef
+    : remoteParentType.getFields()[fieldInfo.remoteFieldName]
 
   if (!remoteField) {
     throw new Error(
