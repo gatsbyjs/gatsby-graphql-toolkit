@@ -7,11 +7,7 @@ import {
   visitWithTypeInfo,
   isObjectType,
 } from "graphql"
-import {
-  FragmentMap,
-  IGatsbyNodeConfig,
-  RemoteTypeName,
-} from "../types"
+import { FragmentMap, IGatsbyNodeConfig, RemoteTypeName } from "../types"
 import * as GraphQLAST from "../utils/ast-nodes"
 import { replaceNodeSelectionWithReference } from "./ast-transformers/replace-node-selection-with-reference"
 import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
