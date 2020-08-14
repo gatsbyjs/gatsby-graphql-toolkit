@@ -3,6 +3,7 @@ import {
   GraphQLObjectType,
   isInterfaceType,
   isObjectType,
+  TypeNameMetaFieldDef,
 } from "graphql"
 import { GatsbyGraphQLObjectType } from "gatsby"
 import { ISchemaCustomizationContext, IGatsbyFieldInfo } from "../types"
@@ -39,7 +40,7 @@ export function buildFields(
 }
 
 /**
- * Returns a list of fields to be added to Gatsby schema for this object type.
+ * Returns a list of fields to be added to Gatsby schema for this type.
  *
  * This list is an intersection of schema fields with fields and aliases from node queries for this type.
  * In other words only fields and aliases requested in node queries will be added to the schema.
@@ -66,10 +67,7 @@ function collectGatsbyTypeFields(
   for (const type of collectFromTypes) {
     const fetchedFields = fetchedTypeMap.get(type.name) ?? []
     for (const { name, alias } of fetchedFields.values()) {
-      if (name === `__typename`) {
-        continue
-      }
-      if (!remoteTypeFields[name]) {
+      if (name !== `__typename` && !remoteTypeFields[name]) {
         // Possible when collecting fields of interface type and checking one of
         // it's implementation fields that is not a part of the interface
         continue
@@ -91,7 +89,9 @@ function buildFieldConfig(
   fieldInfo: IGatsbyFieldInfo,
   remoteParentType: GraphQLInterfaceType | GraphQLObjectType
 ): any {
-  const remoteField = remoteParentType.getFields()[fieldInfo.remoteFieldName]
+  const remoteField = fieldInfo.remoteFieldName === `__typename`
+    ? TypeNameMetaFieldDef
+    : remoteParentType.getFields()[fieldInfo.remoteFieldName]
 
   if (!remoteField) {
     throw new Error(
