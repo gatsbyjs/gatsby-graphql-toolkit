@@ -58,11 +58,13 @@ describe(`Happy path`, () => {
     type WithComplexId1 {
       id: ComplexId
       withComplexId2: WithComplexId2
+      foo: String
     }
     type WithComplexId2 {
       testId: String
       id: ComplexId
       withComplexId1: WithComplexId1
+      foo: String
     }
     input Page {
       pageNumber: Int
@@ -451,12 +453,12 @@ describe(`Happy path`, () => {
       customFragments: [
         `
           fragment Foo on WithComplexId1 {
-            withComplexId2 { testId }
+            withComplexId2 { foo }
           }
         `,
         `
           fragment Bar on WithComplexId2 {
-            withComplexId1 { id { uid } }
+            withComplexId1 { foo }
           }
         `,
       ],
@@ -491,9 +493,7 @@ describe(`Happy path`, () => {
       }
       
       fragment Bar__withComplexId1 on WithComplexId1 {
-        remoteId: id {
-          uid
-        }
+        foo
       }
     `)
     expect(printQuery(queries, `WithComplexId2`)).toEqual(dedent`
@@ -514,9 +514,9 @@ describe(`Happy path`, () => {
       }
       
       fragment Foo__withComplexId2 on WithComplexId2 {
-        testId
+        foo
       }
-
+      
       fragment Bar on WithComplexId2 {
         withComplexId1 {
           remoteTypeName: __typename
@@ -524,6 +524,81 @@ describe(`Happy path`, () => {
             kind
             uid
           }
+        }
+      }
+    `)
+  })
+
+  it(`removes unnecessary reference fragments`, () => {
+    const queries = compileNodeQueries({
+      schema,
+      gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
+      customFragments: [
+        `
+          fragment FooFragment on Bar {
+            foo { testId }
+          }
+        `,
+      ],
+    })
+    expect(printQuery(queries, `Foo`)).toEqual(dedent`
+        query LIST_Foo {
+          allFoo {
+            remoteTypeName: __typename
+            ...FooId
+          }
+        }
+        
+        fragment FooId on Foo {
+          testId
+        }
+
+        # This fragment should be removed as it just duplicates FooId
+        # fragment FooFragment__foo on Foo {
+        #   testId
+        # }
+    `)
+  })
+
+  // TODO
+  it.skip(`supports nested fragment spreads`, () => {
+    const queries = compileNodeQueries({
+      schema,
+      gatsbyNodeTypes: [nodeTypes.Bar],
+      customFragments: [
+        `
+          fragment Foo on Foo {
+            string
+            enum
+          }
+          fragment Bar on Bar {
+            foo {
+              int
+              ...Foo
+            }
+          }
+        `,
+      ],
+    })
+    expect(printQuery(queries, `Bar`)).toEqual(dedent`
+      query LIST_Bar {
+        allBar {
+          remoteTypeName: __typename
+          ...BarId
+          ...Bar
+        }
+      }
+      fragment BarId on Bar {
+        testId
+      }
+      fragment Foo on Foo {
+        string
+        enum
+      }
+      fragment Bar on Bar {
+        foo {
+          int
+          ...Foo
         }
       }
     `)
@@ -640,9 +715,7 @@ describe(`Happy path`, () => {
             `,
           },
         ],
-        customFragments: [
-          `fragment Foo on Foo { createdAt }`
-        ]
+        customFragments: [`fragment Foo on Foo { createdAt }`],
       })
 
       expect(queries.size).toEqual(1)
@@ -676,9 +749,7 @@ describe(`Happy path`, () => {
             `,
           },
         ],
-        customFragments: [
-          `fragment Bar on Bar { createdAt }`
-        ]
+        customFragments: [`fragment Bar on Bar { createdAt }`],
       })
 
       expect(queries.size).toEqual(1)
@@ -698,6 +769,12 @@ describe(`Happy path`, () => {
         }
       `)
     })
+
+    it.todo(`Supports deeply nested variables`)
+    it.todo(`Supports variables within fragments`)
+    it.todo(`Supports deeply nested variables within fragments`)
+    it.todo(`Supports variables within inline fragments`)
+    it.todo(`Supports deeply nested variables within inline fragments`)
   })
 })
 
