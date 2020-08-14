@@ -1,7 +1,5 @@
-import {
-  createBlogSchemaCustomizationContext as createTestContext,
-  createGatsbyNodeDefinitions,
-} from "../../__tests__/test-utils"
+import { createGatsbyNodeDefinitions } from "../../__tests__/test-utils"
+import { createTestContext } from "./test-utils/blog-schema"
 import { buildTypeDefinition } from "../build-types"
 import { GatsbyGraphQLObjectType } from "gatsby"
 
