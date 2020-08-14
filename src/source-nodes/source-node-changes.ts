@@ -6,7 +6,7 @@ import {
   RemoteTypeName,
 } from "../types"
 import { touchNodes } from "./node-actions/touch-nodes"
-import { fetchNodesById } from "./fetch-nodes/fetch-nodes"
+import { fetchNonNullishNodesById } from "./fetch-nodes/fetch-nodes"
 import { createNodes } from "./node-actions/create-nodes"
 import { deleteNodes } from "./node-actions/delete-nodes"
 import { createSourcingContext } from "./sourcing-context"
@@ -27,7 +27,7 @@ export async function sourceNodeChanges(
 
   await touchNodes(context)
   for (const [remoteTypeName, ids] of updates) {
-    const nodes = fetchNodesById(context, remoteTypeName, ids)
+    const nodes = fetchNonNullishNodesById(context, remoteTypeName, ids)
     const promise = createNodes(context, remoteTypeName, nodes)
     promises.push(promise)
   }

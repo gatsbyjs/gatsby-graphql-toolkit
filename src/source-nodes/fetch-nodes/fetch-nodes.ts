@@ -10,11 +10,28 @@ import {
 } from "../utils/field-path-utils"
 import { addPaginatedFields } from "./fetch-node-fields"
 
-export async function* fetchNodesById(
+export async function* fetchNonNullishNodesById(
   context: ISourcingContext,
   remoteTypeName: string,
   ids: IRemoteId[]
 ): AsyncIterable<IRemoteNode> {
+  let index = 0
+  for await (const node of fetchNodesById(context, remoteTypeName, ids)) {
+    if (!node) {
+      throw new Error(
+        `Node "${remoteTypeName}" with id "${ids[index]}" is nullish.`
+      )
+    }
+    index++
+    yield node
+  }
+}
+
+export async function* fetchNodesById(
+  context: ISourcingContext,
+  remoteTypeName: string,
+  ids: IRemoteId[]
+): AsyncIterable<IRemoteNode | void> {
   const { gatsbyApi, formatLogMessage } = context
   const { reporter } = gatsbyApi
   const nodeDefinition = getGatsbyNodeDefinition(context, remoteTypeName)
@@ -39,7 +56,7 @@ export async function fetchNodeById(
   context: ISourcingContext,
   remoteTypeName: string,
   id: IRemoteId
-): Promise<IRemoteNode> {
+): Promise<IRemoteNode | void> {
   const nodeDefinition = getGatsbyNodeDefinition(context, remoteTypeName)
   const operationName = findNodeOperationName(nodeDefinition)
 
@@ -62,7 +79,11 @@ export async function fetchNodeById(
     }
     throw new Error(message)
   }
-  const node: IRemoteNode = getFirstValueByPath(result.data, nodeFieldPath)
+  const node = getFirstValueByPath(result.data, nodeFieldPath)
 
-  return await addPaginatedFields(context, nodeDefinition, node)
+  if (typeof node !== `object` || node === null) {
+    return undefined
+  }
+
+  return await addPaginatedFields(context, nodeDefinition, node as IRemoteNode)
 }

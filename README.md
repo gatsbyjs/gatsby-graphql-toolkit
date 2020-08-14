@@ -1101,7 +1101,7 @@ interface ISourceChanges {
 - [ ] Ignore deleted nodes when resolving references
 - [ ] Allow custom arguments in schema customization?
 - [ ] Docs: "sourcing node field with pagination"
-- [ ] Docs: add other lower-level tools in reference
+- [ ] Docs: add other lower-level tools in reference (with examples)
 - [ ] Tool: `fetchMissingReferences` fetch missing nodes for existing references
 - [ ] Tool: compile Gatsby fragments from remote GraphQL API fragments
 - [ ] Tool: auto-configuration for Relay-compliant GraphQL schemas
