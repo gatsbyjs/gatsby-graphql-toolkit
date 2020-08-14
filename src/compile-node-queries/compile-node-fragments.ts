@@ -1,25 +1,20 @@
 import {
   GraphQLSchema,
   DocumentNode,
-  DefinitionNode,
   FragmentDefinitionNode,
   visit,
   TypeInfo,
-  visitInParallel,
   visitWithTypeInfo,
   isObjectType,
-  BREAK,
 } from "graphql"
 import {
   FragmentMap,
-  IGatsbyFieldAliases,
   IGatsbyNodeConfig,
   RemoteTypeName,
 } from "../types"
 import * as GraphQLAST from "../utils/ast-nodes"
 import { replaceNodeSelectionWithReference } from "./ast-transformers/replace-node-selection-with-reference"
 import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
-// import { removeFragmentNodeIdFields } from "./ast-transformers/remove-fragment-node-id-fields"
 import {
   buildTypeUsagesMap,
   TypeUsagesMap,
@@ -29,7 +24,6 @@ interface ICompileNodeFragmentsArgs {
   schema: GraphQLSchema
   gatsbyNodeTypes: IGatsbyNodeConfig[]
   fragments: FragmentDefinitionNode[]
-  gatsbyFieldAliases: IGatsbyFieldAliases
 }
 
 /**
@@ -92,16 +86,14 @@ export function compileNodeFragments(
       (map, config) => map.set(config.remoteTypeName, config),
       new Map()
     ),
-    gatsbyFieldAliases: args.gatsbyFieldAliases,
     nodeReferenceFragmentMap: buildNodeReferenceFragmentMap(args),
     typeUsagesMap: buildTypeUsagesMap(args),
   }
   const result = new Map<RemoteTypeName, FragmentDefinitionNode[]>()
   for (const nodeConfig of args.gatsbyNodeTypes) {
-    const fragments = compileIntermediateNodeFragments(context, nodeConfig)
     result.set(
       nodeConfig.remoteTypeName,
-      transformIntermediateNodeFragments(context, nodeConfig, fragments)
+      compileNormalizedNodeFragments(context, nodeConfig)
     )
   }
   return result
@@ -110,15 +102,15 @@ export function compileNodeFragments(
 interface ICompileFragmentsContext {
   schema: GraphQLSchema
   gatsbyNodeTypes: Map<RemoteTypeName, IGatsbyNodeConfig>
-  gatsbyFieldAliases: IGatsbyFieldAliases
   typeUsagesMap: TypeUsagesMap
   nodeReferenceFragmentMap: FragmentMap
 }
 
-function compileIntermediateNodeFragments(
-  { schema, typeUsagesMap }: ICompileFragmentsContext,
+function compileNormalizedNodeFragments(
+  context: ICompileFragmentsContext,
   gatsbyNodeConfig: IGatsbyNodeConfig
 ): FragmentDefinitionNode[] {
+  const { schema, typeUsagesMap } = context
   const type = schema.getType(gatsbyNodeConfig.remoteTypeName)
   if (!isObjectType(type)) {
     return []
@@ -136,48 +128,21 @@ function compileIntermediateNodeFragments(
       )
     }
   }
-  return result
+  return addNodeReferences(context, gatsbyNodeConfig, result)
 }
 
-function transformIntermediateNodeFragments(
+function addNodeReferences(
   context: ICompileFragmentsContext,
   gatsbyNodeConfig: IGatsbyNodeConfig,
-  intermediateFragments: FragmentDefinitionNode[]
+  normalizedFragments: FragmentDefinitionNode[]
 ): FragmentDefinitionNode[] {
   const typeInfo = new TypeInfo(context.schema)
   const visitContext = { ...context, gatsbyNodeConfig, typeInfo }
 
   const doc: DocumentNode = visit(
-    GraphQLAST.document(intermediateFragments),
-    visitWithTypeInfo(
-      typeInfo,
-      visitInParallel([
-        replaceNodeSelectionWithReference(visitContext),
-
-        // Remove id fields from node fragments:
-        //   they are already explicitly at the top level of the query
-        //   (just a prettify/cleanup transform really)
-        // FIXME:
-        // removeFragmentNodeIdFields(visitContext),
-      ])
-    )
+    GraphQLAST.document(normalizedFragments),
+    visitWithTypeInfo(typeInfo, replaceNodeSelectionWithReference(visitContext))
   )
 
-  return doc.definitions.filter(isNonEmptyFragment)
-}
-
-function isNonEmptyFragment(
-  fragment: DefinitionNode
-): fragment is FragmentDefinitionNode {
-  if (!GraphQLAST.isFragment(fragment)) {
-    return false
-  }
-  let hasFields = false
-  visit(fragment, {
-    Field: () => {
-      hasFields = true
-      return BREAK
-    },
-  })
-  return hasFields
+  return doc.definitions.filter(GraphQLAST.isFragment)
 }
