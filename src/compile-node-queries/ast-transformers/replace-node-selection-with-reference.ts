@@ -32,7 +32,7 @@ interface ITransformArgs {
  * {
  *   author {
  *     remoteTypeName: __typename
- *     remoteNodeId: id
+ *     remoteId: id
  *   }
  * }
  */

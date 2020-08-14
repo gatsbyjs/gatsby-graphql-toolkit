@@ -1,7 +1,6 @@
 import {
   GraphQLSchema,
   DocumentNode,
-  SelectionNode,
   parse,
   FragmentDefinitionNode,
   TypeInfo,
@@ -13,6 +12,7 @@ import { flatMap } from "lodash"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
 import { addVariableDefinitions } from "./ast-transformers/add-variable-definitions"
 import { aliasGatsbyNodeFields } from "./ast-transformers/alias-gatsby-node-fields"
+import { addFragmentSpreadsAndTypename } from "./ast-transformers/add-fragment-spreads-and-typename"
 import { compileNodeFragments } from "./compile-node-fragments"
 import {
   IGatsbyNodeConfig,
@@ -21,6 +21,7 @@ import {
   IGatsbyFieldAliases,
 } from "../types"
 import * as GraphQLAST from "../utils/ast-nodes"
+import { selectionSetIncludes } from "../utils/ast-compare"
 
 interface ICompileNodeQueriesArgs {
   schema: GraphQLSchema
@@ -53,12 +54,11 @@ export function compileNodeQueries({
   const nodeFragmentMap = compileNodeFragments({
     schema,
     gatsbyNodeTypes,
-    gatsbyFieldAliases,
     fragments,
   })
 
   gatsbyNodeTypes.forEach(config => {
-    const def = compileNodeDocument({
+    const def = compileDocument({
       schema,
       gatsbyNodeTypes,
       gatsbyFieldAliases,
@@ -72,7 +72,7 @@ export function compileNodeQueries({
   return documents
 }
 
-interface ICompileNodeDocumentArgs {
+interface ICompileDocumentArgs {
   remoteTypeName: RemoteTypeName
   gatsbyNodeTypes: Array<IGatsbyNodeConfig>
   gatsbyFieldAliases: IGatsbyFieldAliases
@@ -81,63 +81,74 @@ interface ICompileNodeDocumentArgs {
   fragments: FragmentDefinitionNode[]
 }
 
-function compileNodeDocument(args: ICompileNodeDocumentArgs) {
+function compileDocument(args: ICompileDocumentArgs) {
   const fullDocument: DocumentNode = {
     ...args.queries,
     definitions: args.queries.definitions.concat(args.fragments),
   }
 
   // Expected query variants:
-  //  1. { allUser }
-  //  2. { allNode(type: "User") }
+  //  1. { allUser { ...IDFragment } }
+  //  2. { allNode(type: "User") { ...IDFragment } }
   //
   // We want to transform them to:
-  //  1. { allUser { ...UserFragment1 ...UserFragment2 }}
-  //  2. { allNode(type: "User") { ...UserFragment1 ...UserFragment2 }}
-  //
-  let typeInfo = new TypeInfo(args.schema)
+  //  1. { allUser { ...IDFragment ...UserFragment1 ...UserFragment2 }}
+  //  2. { allNode(type: "User") { ...IDFragment ...UserFragment1 ...UserFragment2 }}
+  const typeInfo = new TypeInfo(args.schema)
 
   const doc: DocumentNode = visit(
     fullDocument,
     visitWithTypeInfo(
       typeInfo,
       visitInParallel([
-        {
-          FragmentDefinition: () => false, // skip fragments
-          SelectionSet: {
-            leave: node => {
-              if (node.selections.some(GraphQLAST.isFragmentSpread)) {
-                // Add:
-                // 1. remoteTypeName: __typename
-                // 2. Spread for ...NodeTypeId (and other custom selections)
-                // 3. Spreads for all custom fragments
-                return GraphQLAST.selectionSet([
-                  GraphQLAST.field(`__typename`),
-                  ...node.selections.filter(
-                    selection => !isTypeNameField(selection)
-                  ),
-                  ...args.fragments.map(fragment =>
-                    GraphQLAST.fragmentSpread(fragment.name.value)
-                  ),
-                ])
-              }
-              return undefined
-            },
-          },
-        },
+        addFragmentSpreadsAndTypename(args.fragments),
+        aliasGatsbyNodeFields({ ...args, typeInfo }),
         addVariableDefinitions({ typeInfo }),
       ])
     )
   )
-
-  // FIXME: avoid another visit
-  typeInfo = new TypeInfo(args.schema)
-  return visit(
-    doc,
-    visitWithTypeInfo(typeInfo, aliasGatsbyNodeFields({ ...args, typeInfo }))
-  )
+  // Prettify:
+  return removeIdFragmentDuplicates(args, doc)
 }
 
-function isTypeNameField(node: SelectionNode): boolean {
-  return node.kind === "Field" && node.name.value === `__typename`
+function removeIdFragmentDuplicates(
+  args: ICompileDocumentArgs,
+  doc: DocumentNode
+): DocumentNode {
+  // Assume ID fragment is listed first
+  const idFragment = doc.definitions.find(GraphQLAST.isFragment)
+
+  if (!idFragment) {
+    throw new Error(
+      `Missing ID Fragment in type config for "${args.remoteTypeName}"`
+    )
+  }
+  const duplicates = doc.definitions
+    .filter(
+      (def): def is FragmentDefinitionNode =>
+        GraphQLAST.isFragment(def) &&
+        def !== idFragment &&
+        selectionSetIncludes(idFragment.selectionSet, def.selectionSet)
+    )
+    .map(def => def.name.value)
+
+  const duplicatesSet = new Set<string>(duplicates)
+
+  return visit(doc, {
+    FragmentSpread: node => {
+      if (duplicatesSet.has(node.name.value)) {
+        // Delete this node
+        return null
+      }
+      return undefined
+    },
+    FragmentDefinition: node => {
+      if (duplicatesSet.has(node.name.value)) {
+        // Delete this node
+        return null
+      }
+      // Stop visiting this node
+      return false
+    },
+  })
 }
