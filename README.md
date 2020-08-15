@@ -1100,6 +1100,7 @@ interface ISourceChanges {
 - [ ] Mime-type mapping on nodes
 - [ ] Ignore deleted nodes when resolving references
 - [ ] Allow custom arguments in schema customization?
+- [ ] Allow fragments on non-node types
 - [ ] Docs: "sourcing node field with pagination"
 - [ ] Docs: add other lower-level tools in reference (with examples)
 - [ ] Tool: `fetchMissingReferences` fetch missing nodes for existing references
