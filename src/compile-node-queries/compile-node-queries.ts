@@ -22,6 +22,7 @@ import {
 } from "../types"
 import { selectionSetIncludes } from "../utils/ast-compare"
 import { isFragment } from "../utils/ast-predicates"
+import { promptUpgradeIfRequired } from "../utils/upgrade-prompt"
 
 interface ICompileNodeQueriesArgs {
   schema: GraphQLSchema
@@ -42,6 +43,8 @@ export function compileNodeQueries({
   gatsbyFieldAliases = defaultGatsbyFieldAliases,
   customFragments,
 }: ICompileNodeQueriesArgs): Map<RemoteTypeName, DocumentNode> {
+  promptUpgradeIfRequired(gatsbyNodeTypes)
+
   const documents = new Map<RemoteTypeName, DocumentNode>()
   const allFragmentDocs: DocumentNode[] = []
   customFragments.forEach(fragmentString => {

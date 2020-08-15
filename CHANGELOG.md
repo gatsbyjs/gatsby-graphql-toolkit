@@ -25,6 +25,10 @@ const gatsbyNodeTypes = [
 ]
 ```
 
+Note: the name of the fragment id could be anything but try to use a
+  unique one to avoid possible conflicts with custom fragments
+  (e.g. in the example above we add `_` as a prefix and a suffix)
+
 This has several advantages:
 
 1. Source queries can be tested directly against the API

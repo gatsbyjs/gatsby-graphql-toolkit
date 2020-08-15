@@ -1101,6 +1101,8 @@ interface ISourceChanges {
 - [ ] Ignore deleted nodes when resolving references
 - [ ] Allow custom arguments in schema customization?
 - [ ] Allow fragments on non-node types
+- [ ] Expose type/node events for debugging and logging
+- [ ] Structured errors (category, id, message, etc)
 - [ ] Docs: "sourcing node field with pagination"
 - [ ] Docs: add other lower-level tools in reference (with examples)
 - [ ] Tool: `fetchMissingReferences` fetch missing nodes for existing references

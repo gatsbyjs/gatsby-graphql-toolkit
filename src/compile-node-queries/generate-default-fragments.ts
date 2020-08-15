@@ -33,6 +33,7 @@ import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliase
 import { aliasGatsbyNodeFields } from "./ast-transformers/alias-gatsby-node-fields"
 import { stripWrappingFragments } from "./ast-transformers/strip-wrapping-fragments"
 import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
+import { promptUpgradeIfRequired } from "../utils/upgrade-prompt"
 
 export interface IArgumentValueResolver {
   (field: GraphQLField<any, any>, parentType: GraphQLObjectType): void | {
@@ -53,6 +54,8 @@ export interface IDefaultFragmentsConfig {
 export function generateDefaultFragments(
   config: IDefaultFragmentsConfig
 ): Map<RemoteTypeName, string> {
+  promptUpgradeIfRequired(config.gatsbyNodeTypes)
+
   const result = new Map<RemoteTypeName, string>()
   for (const [name, fragment] of generateDefaultFragmentNodes(config)) {
     result.set(name, print(fragment))
