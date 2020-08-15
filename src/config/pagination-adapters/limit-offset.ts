@@ -1,5 +1,5 @@
 import { DEFAULT_PAGE_SIZE } from "../../constants"
-import { IPaginationAdapter } from "./types";
+import { IPaginationAdapter } from "./types"
 
 export const LimitOffset: IPaginationAdapter<unknown[], unknown> = {
   name: "LimitOffset",

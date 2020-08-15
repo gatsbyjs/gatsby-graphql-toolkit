@@ -9,7 +9,8 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
-    "prepublish": "tsc"
+    "prepublish": "tsc",
+    "format": "prettier --list-different --write ./src"
   },
   "files": [
     "dist/**"

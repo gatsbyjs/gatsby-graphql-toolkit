@@ -1,4 +1,9 @@
-import { ASTKindToNode, FragmentDefinitionNode, SelectionNode, Visitor } from "graphql"
+import {
+  ASTKindToNode,
+  FragmentDefinitionNode,
+  SelectionNode,
+  Visitor,
+} from "graphql"
 import * as GraphQLAST from "../../utils/ast-nodes"
 import { isFragmentSpread } from "../../utils/ast-predicates"
 

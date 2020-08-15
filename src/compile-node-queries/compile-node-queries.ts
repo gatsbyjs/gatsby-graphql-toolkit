@@ -6,7 +6,7 @@ import {
   TypeInfo,
   visit,
   visitInParallel,
-  visitWithTypeInfo
+  visitWithTypeInfo,
 } from "graphql"
 import { flatMap } from "lodash"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
@@ -14,7 +14,12 @@ import { addVariableDefinitions } from "./ast-transformers/add-variable-definiti
 import { aliasGatsbyNodeFields } from "./ast-transformers/alias-gatsby-node-fields"
 import { addFragmentSpreadsAndTypename } from "./ast-transformers/add-fragment-spreads-and-typename"
 import { compileNodeFragments } from "./compile-node-fragments"
-import { GraphQLSource, IGatsbyFieldAliases, IGatsbyNodeConfig, RemoteTypeName } from "../types"
+import {
+  GraphQLSource,
+  IGatsbyFieldAliases,
+  IGatsbyNodeConfig,
+  RemoteTypeName,
+} from "../types"
 import { selectionSetIncludes } from "../utils/ast-compare"
 import { isFragment } from "../utils/ast-predicates"
 

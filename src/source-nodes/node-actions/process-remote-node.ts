@@ -1,4 +1,8 @@
-import {IGatsbyNodeDefinition, IRemoteNode, ISourcingContext} from "../../types";
+import {
+  IGatsbyNodeDefinition,
+  IRemoteNode,
+  ISourcingContext,
+} from "../../types"
 
 export async function processRemoteNode(
   // @ts-ignore

@@ -6,7 +6,7 @@ import {
   GraphQLSchema,
   isObjectType,
   parse,
-  SelectionNode
+  SelectionNode,
 } from "graphql"
 import { flatMap } from "lodash"
 import { FragmentMap, IGatsbyNodeConfig, RemoteTypeName } from "../../types"
@@ -105,7 +105,11 @@ export function buildNodeReferenceFragmentMap({
     if (!allPossibleTypesAreNodeTypes(possibleTypes, nodesMap)) {
       return
     }
-    const referenceFragment = combineReferenceFragments(iface.name, possibleTypes, nodesMap)
+    const referenceFragment = combineReferenceFragments(
+      iface.name,
+      possibleTypes,
+      nodesMap
+    )
     if (!hasAllIdFields(iface, referenceFragment)) {
       return
     }
@@ -144,8 +148,7 @@ function dedupeFieldsRecursively(fields: FieldNode[]): FieldNode[] {
 
   fields.forEach(field => {
     const fieldName = field.name.value
-    const subFields =
-      field.selectionSet?.selections.filter(isField) ?? []
+    const subFields = field.selectionSet?.selections.filter(isField) ?? []
 
     uniqueFields.set(fieldName, [
       ...(uniqueFields.get(fieldName) ?? []),

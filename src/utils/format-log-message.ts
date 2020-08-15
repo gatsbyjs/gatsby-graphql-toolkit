@@ -1,7 +1,6 @@
 import chalk from "chalk"
 
 function formatLogMessage(input, { verbose = false } = {}): string {
-
   let message
   if (typeof input === `string`) {
     message = input

@@ -29,12 +29,12 @@ export const RelayForward: IPaginationAdapter<IRelayPage, object> = {
       ...acc,
       edges: {
         ...acc.edges,
-        ...page.edges
+        ...page.edges,
       },
-      pageInfo: page.pageInfo
+      pageInfo: page.pageInfo,
     }
   },
   getItems(pageOrResult) {
-    return pageOrResult.edges.map(edge => edge ? edge.node : null)
+    return pageOrResult.edges.map(edge => (edge ? edge.node : null))
   },
 }

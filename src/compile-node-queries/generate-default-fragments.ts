@@ -19,7 +19,8 @@ import {
   isNonNullType,
   Visitor,
   ASTKindToNode,
-  FragmentSpreadNode, TypeInfo
+  FragmentSpreadNode,
+  TypeInfo,
 } from "graphql"
 import * as GraphQLAST from "../utils/ast-nodes"
 import {
@@ -83,7 +84,7 @@ export function generateDefaultFragmentNodes(
 }
 
 interface IGenerateDefaultFragmentContext {
-  schema: GraphQLSchema,
+  schema: GraphQLSchema
   gatsbyFieldAliases: IGatsbyFieldAliases
   fragmentMap: FragmentMap
   nodeReferenceFragmentMap: FragmentMap
@@ -110,10 +111,7 @@ function generateDefaultFragment(
     stripWrappingFragments(),
   ])
 
-  return visit(
-    fragment,
-    visitWithTypeInfo(typeInfo, visitor)
-  )
+  return visit(fragment, visitWithTypeInfo(typeInfo, visitor))
 }
 
 function inlineNamedFragments(
@@ -128,7 +126,10 @@ function inlineNamedFragments(
         // TODO: allow configurable number of nesting levels?
         // Replace the spread with a single __typename field to break the cycle
         // FIXME: delete parent field in this case vs replacing with __typename
-        return GraphQLAST.field(`__typename`, args.gatsbyFieldAliases[`__typename`])
+        return GraphQLAST.field(
+          `__typename`,
+          args.gatsbyFieldAliases[`__typename`]
+        )
       }
       typeStack.push(typeName)
 

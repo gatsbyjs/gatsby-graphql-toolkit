@@ -1,4 +1,4 @@
-import { IPaginationAdapter } from "./types";
+import { IPaginationAdapter } from "./types"
 
 export const NoPagination: IPaginationAdapter<unknown[], unknown> = {
   name: "NoPagination",

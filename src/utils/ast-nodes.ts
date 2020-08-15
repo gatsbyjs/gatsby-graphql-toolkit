@@ -13,13 +13,13 @@ import {
   SelectionNode,
   SelectionSetNode,
   StringValueNode,
-  ValueNode
+  ValueNode,
 } from "graphql"
 
 export function document(definitions: DefinitionNode[]): DocumentNode {
   return {
     kind: "Document",
-    definitions
+    definitions,
   }
 }
 
@@ -130,4 +130,3 @@ export function stringValue(value: string): StringValueNode {
     value,
   }
 }
-

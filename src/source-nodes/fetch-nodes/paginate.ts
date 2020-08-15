@@ -1,7 +1,19 @@
-import { DocumentNode, ExecutionResult, OperationDefinitionNode, print } from "graphql"
+import {
+  DocumentNode,
+  ExecutionResult,
+  OperationDefinitionNode,
+  print,
+} from "graphql"
 import { ISourcingContext } from "../../types"
-import { IPaginationAdapter, PaginationAdapters } from "../../config/pagination-adapters"
-import { findPaginatedFieldPath, getFirstValueByPath, updateFirstValueByPath } from "../utils/field-path-utils"
+import {
+  IPaginationAdapter,
+  PaginationAdapters,
+} from "../../config/pagination-adapters"
+import {
+  findPaginatedFieldPath,
+  getFirstValueByPath,
+  updateFirstValueByPath,
+} from "../utils/field-path-utils"
 import { MAX_QUERY_PAGES } from "../../constants"
 import { inspect } from "util"
 import { isOperation } from "../../utils/ast-predicates"
@@ -127,9 +139,10 @@ export function resolvePaginationAdapter(
     ) ?? []
 
   const variableSet = new Set(variableNames)
-  const adapter = paginationAdapters.find(s =>
-    s.expectedVariableNames.length === variableNames.length &&
-    s.expectedVariableNames.every(name => variableSet.has(name))
+  const adapter = paginationAdapters.find(
+    s =>
+      s.expectedVariableNames.length === variableNames.length &&
+      s.expectedVariableNames.every(name => variableSet.has(name))
   )
   if (!adapter) {
     throw new Error(

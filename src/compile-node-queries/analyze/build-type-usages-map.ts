@@ -82,7 +82,7 @@ export function buildTypeUsagesMap(
         },
         leave() {
           typeUsagePath.pop()
-        }
+        },
       },
       Field: {
         enter: node => {

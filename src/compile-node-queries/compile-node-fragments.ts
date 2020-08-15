@@ -5,13 +5,16 @@ import {
   isObjectType,
   TypeInfo,
   visit,
-  visitWithTypeInfo
+  visitWithTypeInfo,
 } from "graphql"
 import { FragmentMap, IGatsbyNodeConfig, RemoteTypeName } from "../types"
 import * as GraphQLAST from "../utils/ast-nodes"
 import { replaceNodeSelectionWithReference } from "./ast-transformers/replace-node-selection-with-reference"
 import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
-import { buildTypeUsagesMap, TypeUsagesMap } from "./analyze/build-type-usages-map"
+import {
+  buildTypeUsagesMap,
+  TypeUsagesMap,
+} from "./analyze/build-type-usages-map"
 import { isFragment } from "../utils/ast-predicates"
 
 interface ICompileNodeFragmentsArgs {

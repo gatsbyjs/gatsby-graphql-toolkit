@@ -35,7 +35,6 @@ export async function sourceNodeChanges(
   await Promise.all(promises)
 }
 
-
 interface IChangeGroups {
   updates: Map<RemoteTypeName, IRemoteId[]>
   deletes: INodeDeleteEvent[]

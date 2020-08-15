@@ -250,7 +250,7 @@ const nodeTypes: {
       query { fooConflict1 { ...FooConflict1Id  } }
       fragment FooConflict1Id on FooConflict1 { testId }
     `,
-  }
+  },
 }
 
 describe(`simple types (scalars, objects)`, () => {

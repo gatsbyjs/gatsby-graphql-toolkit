@@ -6,7 +6,7 @@ import {
   FragmentDefinitionNode,
   FragmentSpreadNode,
   OperationDefinitionNode,
-  visit
+  visit,
 } from "graphql"
 
 export function isFragment(node: ASTNode): node is FragmentDefinitionNode {

@@ -89,9 +89,10 @@ function buildFieldConfig(
   fieldInfo: IGatsbyFieldInfo,
   remoteParentType: GraphQLInterfaceType | GraphQLObjectType
 ): any {
-  const remoteField = fieldInfo.remoteFieldName === `__typename`
-    ? TypeNameMetaFieldDef
-    : remoteParentType.getFields()[fieldInfo.remoteFieldName]
+  const remoteField =
+    fieldInfo.remoteFieldName === `__typename`
+      ? TypeNameMetaFieldDef
+      : remoteParentType.getFields()[fieldInfo.remoteFieldName]
 
   if (!remoteField) {
     throw new Error(
