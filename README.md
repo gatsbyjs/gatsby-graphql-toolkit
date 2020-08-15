@@ -80,6 +80,9 @@ This new toolkit should solve all those issues and implement correct node sourci
 - Schema customization out of the box (no performance penalty of type inference)
 - Designed to support [Gatsby Preview][5] and [Incremental Builds][6]
 
+## Examples
+Check out several usage examples in https://github.com/vladar/gatsby-graphql-toolkit-examples 
+
 ## How it works
 
 Imagine you have a GraphQL API located at `https://www.example.com/graphql`.
