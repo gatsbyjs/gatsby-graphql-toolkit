@@ -1,12 +1,12 @@
 import {
-  GraphQLSchema,
   DocumentNode,
-  parse,
   FragmentDefinitionNode,
+  GraphQLSchema,
+  parse,
   TypeInfo,
   visit,
-  visitWithTypeInfo,
   visitInParallel,
+  visitWithTypeInfo
 } from "graphql"
 import { flatMap } from "lodash"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
@@ -14,14 +14,9 @@ import { addVariableDefinitions } from "./ast-transformers/add-variable-definiti
 import { aliasGatsbyNodeFields } from "./ast-transformers/alias-gatsby-node-fields"
 import { addFragmentSpreadsAndTypename } from "./ast-transformers/add-fragment-spreads-and-typename"
 import { compileNodeFragments } from "./compile-node-fragments"
-import {
-  IGatsbyNodeConfig,
-  RemoteTypeName,
-  GraphQLSource,
-  IGatsbyFieldAliases,
-} from "../types"
-import * as GraphQLAST from "../utils/ast-nodes"
+import { GraphQLSource, IGatsbyFieldAliases, IGatsbyNodeConfig, RemoteTypeName } from "../types"
 import { selectionSetIncludes } from "../utils/ast-compare"
+import { isFragment } from "../utils/ast-predicates"
 
 interface ICompileNodeQueriesArgs {
   schema: GraphQLSchema
@@ -48,7 +43,7 @@ export function compileNodeQueries({
     allFragmentDocs.push(parse(fragmentString))
   })
   const fragments = flatMap(allFragmentDocs, doc =>
-    doc.definitions.filter(GraphQLAST.isFragment)
+    doc.definitions.filter(isFragment)
   )
 
   const nodeFragmentMap = compileNodeFragments({
@@ -116,7 +111,7 @@ function removeIdFragmentDuplicates(
   doc: DocumentNode
 ): DocumentNode {
   // Assume ID fragment is listed first
-  const idFragment = doc.definitions.find(GraphQLAST.isFragment)
+  const idFragment = doc.definitions.find(isFragment)
 
   if (!idFragment) {
     throw new Error(
@@ -126,7 +121,7 @@ function removeIdFragmentDuplicates(
   const duplicates = doc.definitions
     .filter(
       (def): def is FragmentDefinitionNode =>
-        GraphQLAST.isFragment(def) &&
+        isFragment(def) &&
         def !== idFragment &&
         selectionSetIncludes(idFragment.selectionSet, def.selectionSet)
     )

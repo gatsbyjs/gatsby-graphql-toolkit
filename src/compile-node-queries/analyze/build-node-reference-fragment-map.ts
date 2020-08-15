@@ -1,20 +1,17 @@
 import {
-  GraphQLSchema,
+  FieldNode,
+  FragmentDefinitionNode,
   GraphQLInterfaceType,
   GraphQLObjectType,
+  GraphQLSchema,
   isObjectType,
   parse,
-  FragmentDefinitionNode,
-  FieldNode,
-  SelectionNode,
+  SelectionNode
 } from "graphql"
 import { flatMap } from "lodash"
-import {
-  FragmentMap,
-  IGatsbyNodeConfig,
-  RemoteTypeName,
-} from "../../types"
+import { FragmentMap, IGatsbyNodeConfig, RemoteTypeName } from "../../types"
 import * as GraphQLAST from "../../utils/ast-nodes"
+import { isField, isFragment } from "../../utils/ast-predicates"
 
 /**
  * Create reference fragment for every node type
@@ -71,7 +68,7 @@ export function buildNodeReferenceFragmentMap({
       )
     }
     const document = parse(config.queries)
-    const fragments = document.definitions.filter(GraphQLAST.isFragment)
+    const fragments = document.definitions.filter(isFragment)
     if (fragments.length !== 1) {
       throw new Error(
         `Every node type query is expected to contain a single fragment ` +
@@ -133,12 +130,12 @@ function combineReferenceFragments(
   const allIdFields = flatMap(
     possibleTypes,
     type => nodesMap.get(type.name)?.selectionSet.selections ?? []
-  ).filter(GraphQLAST.isField)
+  ).filter(isField)
 
   return GraphQLAST.fragmentDefinition(
     interfaceName,
     interfaceName,
-    dedupeFieldsRecursively(allIdFields.filter(GraphQLAST.isField))
+    dedupeFieldsRecursively(allIdFields.filter(isField))
   )
 }
 
@@ -148,7 +145,7 @@ function dedupeFieldsRecursively(fields: FieldNode[]): FieldNode[] {
   fields.forEach(field => {
     const fieldName = field.name.value
     const subFields =
-      field.selectionSet?.selections.filter(GraphQLAST.isField) ?? []
+      field.selectionSet?.selections.filter(isField) ?? []
 
     uniqueFields.set(fieldName, [
       ...(uniqueFields.get(fieldName) ?? []),
@@ -176,7 +173,7 @@ function hasAllIdFields(
   // TODO: also check nested fields?
   const fields = iface.getFields()
   for (const field of idFragment.selectionSet.selections) {
-    if (!GraphQLAST.isField(field)) {
+    if (!isField(field)) {
       return false
     }
     const fieldName = field.name.value

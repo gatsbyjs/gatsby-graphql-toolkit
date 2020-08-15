@@ -1,21 +1,19 @@
 import {
-  NameNode,
-  FieldNode,
-  FragmentDefinitionNode,
-  OperationDefinitionNode,
-  SelectionSetNode,
-  SelectionNode,
-  NamedTypeNode,
-  FragmentSpreadNode,
-  InlineFragmentNode,
   ArgumentNode,
-  ValueNode,
   BooleanValueNode,
-  StringValueNode,
+  DefinitionNode,
   DirectiveNode,
   DocumentNode,
-  ASTNode,
-  DefinitionNode,
+  FieldNode,
+  FragmentDefinitionNode,
+  FragmentSpreadNode,
+  InlineFragmentNode,
+  NamedTypeNode,
+  NameNode,
+  SelectionNode,
+  SelectionSetNode,
+  StringValueNode,
+  ValueNode
 } from "graphql"
 
 export function document(definitions: DefinitionNode[]): DocumentNode {
@@ -133,18 +131,3 @@ export function stringValue(value: string): StringValueNode {
   }
 }
 
-export function isFragment(node: ASTNode): node is FragmentDefinitionNode {
-  return node.kind === "FragmentDefinition"
-}
-
-export function isOperation(node: ASTNode): node is OperationDefinitionNode {
-  return node.kind === "OperationDefinition"
-}
-
-export function isField(node: ASTNode): node is FieldNode {
-  return node.kind === "Field"
-}
-
-export function isFragmentSpread(node: ASTNode): node is FragmentSpreadNode {
-  return node.kind === "FragmentSpread"
-}

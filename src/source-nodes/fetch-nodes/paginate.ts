@@ -1,22 +1,10 @@
-import {
-  OperationDefinitionNode,
-  DocumentNode,
-  print,
-  ExecutionResult,
-} from "graphql"
+import { DocumentNode, ExecutionResult, OperationDefinitionNode, print } from "graphql"
 import { ISourcingContext } from "../../types"
-import {
-  IPaginationAdapter,
-  PaginationAdapters,
-} from "../../config/pagination-adapters"
-import * as GraphQLAST from "../../utils/ast-nodes"
-import {
-  findPaginatedFieldPath,
-  getFirstValueByPath,
-  updateFirstValueByPath,
-} from "../utils/field-path-utils"
+import { IPaginationAdapter, PaginationAdapters } from "../../config/pagination-adapters"
+import { findPaginatedFieldPath, getFirstValueByPath, updateFirstValueByPath } from "../utils/field-path-utils"
 import { MAX_QUERY_PAGES } from "../../constants"
 import { inspect } from "util"
+import { isOperation } from "../../utils/ast-predicates"
 
 interface IPaginationPlan {
   document: DocumentNode
@@ -156,7 +144,7 @@ export function findQueryDefinitionNode(
   document: DocumentNode,
   operationName: string
 ): OperationDefinitionNode {
-  const operations = document.definitions.filter(GraphQLAST.isOperation)
+  const operations = document.definitions.filter(isOperation)
   const queryNode = operations.find(op => op.name?.value === operationName)
 
   if (!queryNode) {

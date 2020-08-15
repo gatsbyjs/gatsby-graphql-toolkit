@@ -8,7 +8,7 @@ import {
 import { Node } from "gatsby"
 import { flatMap } from "lodash"
 import { FragmentDefinitionNode, SelectionNode } from "graphql"
-import { isField, isFragment } from "../utils/ast-nodes"
+import { isField, isFragment } from "../utils/ast-predicates"
 
 export function createNodeIdTransform(): INodeIdTransform {
   return {
