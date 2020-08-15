@@ -32,6 +32,7 @@ export function findPaginatedFieldPath(
   const expectedVars = paginationAdapter.expectedVariableNames
 
   if (!expectedVars.length) {
+    // FIXME: use first fragment spread instead of __typename
     // TODO: consider to always use this instead of isPaginatedField
     const hasTypeNameField = (field: FieldNode) =>
       field.selectionSet

@@ -112,7 +112,9 @@ export function planPagination(
 
   if (!fieldName) {
     throw new Error(
-      `Cannot find field to paginate in the query ${operationName}`
+      `Cannot find field to paginate in the query ${operationName}. ` +
+        `Make sure you spread IDFragment in your source query:\n` +
+        ` query ${operationName} { field { ...IDFragment } }`
     )
   }
 
