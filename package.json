@@ -9,7 +9,7 @@
   "scripts": {
     "test": "jest",
     "build": "rimraf dist/* && tsc",
-    "prepublishOnly": "build",
+    "prepublishOnly": "npm run build",
     "format": "prettier --list-different --write ./src"
   },
   "files": [
