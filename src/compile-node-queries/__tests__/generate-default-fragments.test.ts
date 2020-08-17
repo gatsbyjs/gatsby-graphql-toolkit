@@ -1,5 +1,6 @@
+import { buildSchema } from "graphql"
 import { generateDefaultFragments } from "../generate-default-fragments"
-import { buildSchema, print, parse } from "graphql"
+import { dedent } from "../../__tests__/test-utils"
 import { IGatsbyNodeConfig } from "../../types"
 
 const schema = buildSchema(`
@@ -841,7 +842,3 @@ describe(`abstract types (interfaces, unions)`, () => {
     `)
   })
 })
-
-function dedent(gqlStrings) {
-  return print(parse(gqlStrings[0])).replace(/\n$/, ``)
-}

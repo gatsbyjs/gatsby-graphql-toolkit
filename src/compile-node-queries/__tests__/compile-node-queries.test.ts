@@ -1,6 +1,7 @@
-import { parse, print, buildSchema, DocumentNode } from "graphql"
+import { buildSchema } from "graphql"
 import { compileNodeQueries } from "../compile-node-queries"
-import { IGatsbyNodeConfig, RemoteTypeName } from "../../types"
+import { dedent, printQuery } from "../../__tests__/test-utils"
+import { IGatsbyNodeConfig } from "../../types"
 
 describe(`Happy path`, () => {
   const schema = buildSchema(`
@@ -781,18 +782,3 @@ describe(`Happy path`, () => {
 describe(`Errors`, () => {
   // TODO
 })
-
-function printQuery(
-  compiledQueries: Map<RemoteTypeName, DocumentNode>,
-  remoteTypeName: string
-) {
-  const query = compiledQueries.get(remoteTypeName)
-  if (!query) {
-    throw new Error(`Query for ${remoteTypeName} was not compiled`)
-  }
-  return print(query).replace(/\n$/, ``)
-}
-
-function dedent(gqlStrings) {
-  return print(parse(gqlStrings[0])).replace(/\n$/, ``)
-}
