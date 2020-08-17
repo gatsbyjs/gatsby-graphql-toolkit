@@ -8,8 +8,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "tsc",
-    "prepublish": "tsc",
+    "build": "rimraf dist/* && tsc",
+    "prepublishOnly": "build",
     "format": "prettier --list-different --write ./src"
   },
   "files": [
@@ -32,6 +32,7 @@
     "graphql": "^14.6.0",
     "jest": "^26.1.0",
     "react-dom": "^16.13.1",
+    "rimraf": "^3.0.2",
     "ts-jest": "^26.1.3",
     "typescript": "^3.9.7"
   },
