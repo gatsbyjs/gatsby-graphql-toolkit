@@ -11,8 +11,11 @@ export function addFragmentSpreadsAndTypename(
   fragments: FragmentDefinitionNode[]
 ): Visitor<ASTKindToNode> {
   return {
-    FragmentDefinition: () => false, // skip fragments
-    SelectionSet: node => {
+    SelectionSet: (node, _, __, path) => {
+      if (path[0] === "FragmentDefinition") {
+        // Do not visit fragment sub-selections
+        return false
+      }
       if (node.selections.some(isFragmentSpread)) {
         return GraphQLAST.selectionSet([
           GraphQLAST.field(`__typename`),
