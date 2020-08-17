@@ -1097,6 +1097,11 @@ interface ISourceChanges {
 }
 ```
 
+## TODOC: Troubleshooting tips
+
+- [ ] Write compiled queries to disk ([example](https://github.com/vladar/gatsby-graphql-toolkit-examples/blob/master/graph-cms/gatsby-node.js#L62))
+- [ ] Disable schema customization to see raw nodes in GraphiQL
+
 ## TODO:
 
 - [x] Allow complex nested id fields
