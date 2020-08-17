@@ -137,6 +137,10 @@ function removeIdFragmentDuplicates(
 
   const duplicatesSet = new Set<string>(duplicates)
 
+  if (duplicatesSet.size === 0) {
+    return doc
+  }
+
   return visit(doc, {
     FragmentSpread: node => {
       if (duplicatesSet.has(node.name.value)) {
