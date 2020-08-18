@@ -6,6 +6,7 @@ export {
 
 export { loadSchema, introspectSchema } from "./config/load-schema"
 export { buildNodeDefinitions } from "./config/build-node-definitions"
+export { createSourcingContext } from "./source-nodes"
 
 export {
   PaginationAdapters,
