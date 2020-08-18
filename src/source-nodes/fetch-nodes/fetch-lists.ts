@@ -11,7 +11,8 @@ import { addPaginatedFields } from "./fetch-node-fields"
  */
 export async function* fetchAllNodes(
   context: ISourcingContext,
-  remoteTypeName: string
+  remoteTypeName: string,
+  variables?: object
 ): AsyncIterable<IRemoteNode> {
   const { gatsbyApi, formatLogMessage } = context
   const { reporter } = gatsbyApi
@@ -26,7 +27,12 @@ export async function* fetchAllNodes(
     const listOperations = collectListOperationNames(nodeDefinition.document)
 
     for (const nodeListQuery of listOperations) {
-      const nodes = fetchNodeList(context, remoteTypeName, nodeListQuery)
+      const nodes = fetchNodeList(
+        context,
+        remoteTypeName,
+        nodeListQuery,
+        variables
+      )
       for await (const node of nodes) {
         yield node
       }
@@ -39,7 +45,8 @@ export async function* fetchAllNodes(
 export async function* fetchNodeList(
   context: ISourcingContext,
   remoteTypeName: string,
-  listOperationName: string
+  listOperationName: string,
+  variables?: object
 ): AsyncIterable<IRemoteNode> {
   const typeNameField = context.gatsbyFieldAliases["__typename"]
   const nodeDefinition = getGatsbyNodeDefinition(context, remoteTypeName)
@@ -47,7 +54,8 @@ export async function* fetchNodeList(
   const plan = planPagination(
     context,
     nodeDefinition.document,
-    listOperationName
+    listOperationName,
+    variables
   )
 
   for await (const page of paginate(context, plan)) {
