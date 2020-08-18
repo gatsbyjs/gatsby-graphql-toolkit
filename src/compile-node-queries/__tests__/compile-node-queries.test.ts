@@ -701,6 +701,51 @@ describe(`Happy path`, () => {
         }
       `)
     })
+
+    it(`adds __typename to every field of abstract type`, () => {
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [nodeTypes.Bar],
+        customFragments: [
+          `
+          fragment Bar on Bar {
+            node {
+              createdAt
+            }
+          }
+          `
+        ],
+      })
+      expect(queries.size).toEqual(1)
+      expect(printQuery(queries, `Bar`)).toEqual(dedent`
+        query LIST_Bar {
+          allBar {
+            remoteTypeName: __typename
+            ...BarId
+            ...Bar
+            ...Bar__node
+          }
+        }
+        fragment BarId on Bar {
+          testId
+        }
+        fragment Bar on Bar {
+          node {
+            remoteTypeName: __typename
+            ... on Foo {
+              createdAt
+            }
+            ... on Bar {
+              remoteTypeName: __typename
+              testId
+            }
+          }
+        }
+        fragment Bar__node on Node {
+          createdAt
+        }
+      `)
+    })
   })
 
   describe(`Variables`, () => {

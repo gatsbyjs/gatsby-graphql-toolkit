@@ -3,45 +3,55 @@ import {
   Visitor,
   ASTKindToNode,
   SelectionSetNode,
-  isCompositeType,
+  isAbstractType,
 } from "graphql"
 import * as GraphQLAST from "../../utils/ast-nodes"
-import { IGatsbyFieldAliases } from "../../types"
+import { isNode } from "../../utils/ast-predicates"
 
 interface IAddTypeNameArgs {
   typeInfo: TypeInfo
-  gatsbyFieldAliases: IGatsbyFieldAliases
 }
 
+/**
+ * Adds __typename to all fields of abstract types, i.e. transforms:
+ * ```
+ * {
+ *   node { foo }
+ * }
+ * ```
+ * to
+ * ```
+ * {
+ *   node { __typename foo }
+ * }
+ * ```
+ * (where `node` is of Interface or Union type)
+ */
 export function addRemoteTypeNameField({
   typeInfo,
-  gatsbyFieldAliases,
 }: IAddTypeNameArgs): Visitor<ASTKindToNode> {
   return {
-    SelectionSet: node => {
+    SelectionSet: (node, _, parent) => {
       if (
-        isCompositeType(typeInfo.getParentType()) &&
-        !hasRemoteTypeNameField(node, gatsbyFieldAliases)
+        isNode(parent) &&
+        parent.kind === `Field` &&
+        !hasTypenameField(node) &&
+        isAbstractType(typeInfo.getType())
       ) {
-        const field = GraphQLAST.field(
-          `__typename`,
-          gatsbyFieldAliases[`__typename`]
-        )
-        return { ...node, selections: [field, ...node.selections] }
+        return {
+          ...node,
+          selections: [GraphQLAST.field(`__typename`), ...node.selections],
+        }
       }
       return
     },
   }
 }
 
-function hasRemoteTypeNameField(
-  node: SelectionSetNode,
-  aliases: IGatsbyFieldAliases
-) {
+function hasTypenameField(node: SelectionSetNode) {
   return node.selections.some(node =>
     node.kind === "Field"
-      ? node.name.value === `__typename` &&
-        (!node.alias || node.alias.value === aliases[`__typename`])
+      ? node.name.value === `__typename` && !node.alias
       : false
   )
 }

@@ -5,11 +5,13 @@ import {
   isObjectType,
   TypeInfo,
   visit,
+  visitInParallel,
   visitWithTypeInfo,
 } from "graphql"
 import { FragmentMap, IGatsbyNodeConfig, RemoteTypeName } from "../types"
 import * as GraphQLAST from "../utils/ast-nodes"
 import { replaceNodeSelectionWithReference } from "./ast-transformers/replace-node-selection-with-reference"
+import { addRemoteTypeNameField } from "./ast-transformers/add-remote-typename-field"
 import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
 import {
   buildTypeUsagesMap,
@@ -138,7 +140,12 @@ function addNodeReferences(
 
   const doc: DocumentNode = visit(
     GraphQLAST.document(normalizedFragments),
-    visitWithTypeInfo(typeInfo, replaceNodeSelectionWithReference(visitContext))
+    visitWithTypeInfo(typeInfo,
+      visitInParallel([
+        replaceNodeSelectionWithReference(visitContext),
+        addRemoteTypeNameField(visitContext)
+      ])
+    )
   )
 
   return doc.definitions.filter(isFragment)

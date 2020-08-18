@@ -9,6 +9,14 @@ import {
   visit,
 } from "graphql"
 
+export function isNode(node: unknown): node is ASTNode {
+  return (
+    typeof node === `object` &&
+    node !== null &&
+    typeof node[`kind`] === `string`
+  )
+}
+
 export function isFragment(node: ASTNode): node is FragmentDefinitionNode {
   return node.kind === "FragmentDefinition"
 }
