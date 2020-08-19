@@ -207,31 +207,6 @@ describe(`Happy path`, () => {
     `)
   })
 
-  it(`replaces other node selections with reference`, () => {
-    const queries = compileNodeQueries({
-      schema,
-      gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
-      customFragments: [`fragment Bar on Bar { foo { enum } }`],
-    })
-
-    expect(printQuery(queries, `Bar`)).toEqual(dedent`
-      query LIST_Bar {
-        allBar {
-          remoteTypeName: __typename
-          ...BarId
-          ...Bar
-        }
-      }
-      fragment BarId on Bar { testId }
-      fragment Bar on Bar {
-        foo {
-          remoteTypeName: __typename
-          testId
-        }
-      }
-    `)
-  })
-
   it(`extracts node fields declared on other node type to separate fragments`, () => {
     const queries = compileNodeQueries({
       schema,
@@ -327,209 +302,6 @@ describe(`Happy path`, () => {
     `)
   })
 
-  it(`aliases internal Gatsby fields on node types`, () => {
-    const fragment = `
-      fragment WithGatsbyFields on WithGatsbyFields {
-        id
-        internal
-        parent
-        children
-        fields {
-          id
-          internal
-          parent
-          children
-        }
-      }
-    `
-    const queries = compileNodeQueries({
-      schema,
-      gatsbyNodeTypes: [nodeTypes.WithGatsbyFields, nodeTypes.GatsbyFields],
-      customFragments: [fragment],
-    })
-
-    expect(queries.size).toEqual(2)
-    expect(printQuery(queries, `WithGatsbyFields`)).toEqual(dedent`
-      query LIST_WithGatsbyFields {
-        allWithGatsbyFields {
-          remoteTypeName: __typename
-          ...WithGatsbyFieldsId
-          ...WithGatsbyFields
-        }
-      }
-      
-      fragment WithGatsbyFieldsId on WithGatsbyFields {
-        remoteTypeName: __typename
-        remoteId: id
-      }
-
-      fragment WithGatsbyFields on WithGatsbyFields {
-        remoteId: id
-        remoteInternal: internal
-        remoteParent: parent
-        remoteChildren: children
-        remoteFields: fields {
-          remoteTypeName: __typename
-          remoteId: id
-        }
-      }
-    `)
-    expect(printQuery(queries, `GatsbyFields`)).toEqual(dedent`
-      query LIST_GatsbyFields {
-        allGatsbyFields {
-          remoteTypeName: __typename
-          ...GatsbyFieldsId
-          ...WithGatsbyFields__fields
-        }
-      }
-      
-      fragment GatsbyFieldsId on GatsbyFields {
-        remoteId: id
-      }
-      
-      fragment WithGatsbyFields__fields on GatsbyFields {
-        remoteId: id
-        remoteInternal: internal
-        remoteParent: parent
-        remoteChildren: children
-      }
-    `)
-  })
-
-  it(`doesn't alias internal Gatsby fields on non-node types`, () => {
-    const fragment = `
-      fragment WithGatsbyFields on WithGatsbyFields {
-        id
-        internal
-        parent
-        children
-        fields {
-          id
-          internal
-          parent
-          children
-        }
-      }
-    `
-    const queries = compileNodeQueries({
-      schema,
-      gatsbyNodeTypes: [nodeTypes.WithGatsbyFields],
-      customFragments: [fragment],
-    })
-
-    expect(queries.size).toEqual(1)
-    expect(printQuery(queries, `WithGatsbyFields`)).toEqual(dedent`
-      query LIST_WithGatsbyFields {
-        allWithGatsbyFields {
-          remoteTypeName: __typename
-          ...WithGatsbyFieldsId
-          ...WithGatsbyFields
-        }
-      }
-      
-      fragment WithGatsbyFieldsId on WithGatsbyFields {
-        remoteTypeName: __typename
-        remoteId: id
-      }
-
-      fragment WithGatsbyFields on WithGatsbyFields {
-        remoteId: id
-        remoteInternal: internal
-        remoteParent: parent
-        remoteChildren: children
-        remoteFields: fields {
-          id
-          internal
-          parent
-          children
-        }
-      }
-    `)
-  })
-
-  it(`supports complex ID fields`, () => {
-    const queries = compileNodeQueries({
-      schema,
-      gatsbyNodeTypes: [nodeTypes.WithComplexId1, nodeTypes.WithComplexId2],
-      customFragments: [
-        `
-          fragment Foo on WithComplexId1 {
-            withComplexId2 { foo }
-          }
-        `,
-        `
-          fragment Bar on WithComplexId2 {
-            withComplexId1 { foo }
-          }
-        `,
-      ],
-    })
-
-    expect(queries.size).toEqual(2)
-    expect(printQuery(queries, `WithComplexId1`)).toEqual(dedent`
-      query LIST_WithComplexId1 {
-        allWithComplexId1 {
-          remoteTypeName: __typename
-          ...WithComplexId1_Id
-          ...Foo
-          ...Bar__withComplexId1
-        }
-      }
-      
-      fragment WithComplexId1_Id on WithComplexId1 {
-        remoteId: id {
-          kind
-          uid
-        }
-      }
-      
-      fragment Foo on WithComplexId1 {
-        withComplexId2 {
-          remoteTypeName: __typename
-          testId
-          remoteId: id {
-            uid
-          }
-        }
-      }
-      
-      fragment Bar__withComplexId1 on WithComplexId1 {
-        foo
-      }
-    `)
-    expect(printQuery(queries, `WithComplexId2`)).toEqual(dedent`
-      query LIST_WithComplexId2 {
-        allWithComplexId2 {
-          remoteTypeName: __typename
-          ...WithComplexId2_Id
-          ...Foo__withComplexId2
-          ...Bar
-        }
-      }
-      
-      fragment WithComplexId2_Id on WithComplexId2 {
-        testId
-        remoteId: id {
-          uid
-        }
-      }
-      
-      fragment Foo__withComplexId2 on WithComplexId2 {
-        foo
-      }
-      
-      fragment Bar on WithComplexId2 {
-        withComplexId1 {
-          remoteTypeName: __typename
-          remoteId: id {
-            kind
-            uid
-          }
-        }
-      }
-    `)
-  })
-
   it(`removes unnecessary reference fragments`, () => {
     const queries = compileNodeQueries({
       schema,
@@ -603,6 +375,238 @@ describe(`Happy path`, () => {
         }
       }
     `)
+  })
+
+  describe(`Node referencing`, () => {
+    it(`replaces other node selections with reference`, () => {
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
+        customFragments: [`fragment Bar on Bar { foo { enum } }`],
+      })
+
+      expect(printQuery(queries, `Bar`)).toEqual(dedent`
+        query LIST_Bar {
+          allBar {
+            remoteTypeName: __typename
+            ...BarId
+            ...Bar
+          }
+        }
+        fragment BarId on Bar { testId }
+        fragment Bar on Bar {
+          foo {
+            remoteTypeName: __typename
+            testId
+          }
+        }
+      `)
+    })
+
+    it(`supports complex ID fields`, () => {
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [nodeTypes.WithComplexId1, nodeTypes.WithComplexId2],
+        customFragments: [
+          `
+          fragment Foo on WithComplexId1 {
+            withComplexId2 { foo }
+          }
+        `,
+          `
+          fragment Bar on WithComplexId2 {
+            withComplexId1 { foo }
+          }
+        `,
+        ],
+      })
+
+      expect(queries.size).toEqual(2)
+      expect(printQuery(queries, `WithComplexId1`)).toEqual(dedent`
+        query LIST_WithComplexId1 {
+          allWithComplexId1 {
+            remoteTypeName: __typename
+            ...WithComplexId1_Id
+            ...Foo
+            ...Bar__withComplexId1
+          }
+        }
+        
+        fragment WithComplexId1_Id on WithComplexId1 {
+          remoteId: id {
+            kind
+            uid
+          }
+        }
+        
+        fragment Foo on WithComplexId1 {
+          withComplexId2 {
+            remoteTypeName: __typename
+            testId
+            remoteId: id {
+              uid
+            }
+          }
+        }
+        
+        fragment Bar__withComplexId1 on WithComplexId1 {
+          foo
+        }
+      `)
+      expect(printQuery(queries, `WithComplexId2`)).toEqual(dedent`
+        query LIST_WithComplexId2 {
+          allWithComplexId2 {
+            remoteTypeName: __typename
+            ...WithComplexId2_Id
+            ...Foo__withComplexId2
+            ...Bar
+          }
+        }
+        
+        fragment WithComplexId2_Id on WithComplexId2 {
+          testId
+          remoteId: id {
+            uid
+          }
+        }
+        
+        fragment Foo__withComplexId2 on WithComplexId2 {
+          foo
+        }
+        
+        fragment Bar on WithComplexId2 {
+          withComplexId1 {
+            remoteTypeName: __typename
+            remoteId: id {
+              kind
+              uid
+            }
+          }
+        }
+      `)
+    })
+  })
+
+  describe(`Field aliasing`, () => {
+    it(`aliases internal Gatsby fields on node types`, () => {
+      const fragment = `
+        fragment WithGatsbyFields on WithGatsbyFields {
+          id
+          internal
+          parent
+          children
+          fields {
+            id
+            internal
+            parent
+            children
+          }
+        }
+      `
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [nodeTypes.WithGatsbyFields, nodeTypes.GatsbyFields],
+        customFragments: [fragment],
+      })
+
+      expect(queries.size).toEqual(2)
+      expect(printQuery(queries, `WithGatsbyFields`)).toEqual(dedent`
+        query LIST_WithGatsbyFields {
+          allWithGatsbyFields {
+            remoteTypeName: __typename
+            ...WithGatsbyFieldsId
+            ...WithGatsbyFields
+          }
+        }
+        
+        fragment WithGatsbyFieldsId on WithGatsbyFields {
+          remoteTypeName: __typename
+          remoteId: id
+        }
+  
+        fragment WithGatsbyFields on WithGatsbyFields {
+          remoteId: id
+          remoteInternal: internal
+          remoteParent: parent
+          remoteChildren: children
+          remoteFields: fields {
+            remoteTypeName: __typename
+            remoteId: id
+          }
+        }
+      `)
+      expect(printQuery(queries, `GatsbyFields`)).toEqual(dedent`
+        query LIST_GatsbyFields {
+          allGatsbyFields {
+            remoteTypeName: __typename
+            ...GatsbyFieldsId
+            ...WithGatsbyFields__fields
+          }
+        }
+        
+        fragment GatsbyFieldsId on GatsbyFields {
+          remoteId: id
+        }
+        
+        fragment WithGatsbyFields__fields on GatsbyFields {
+          remoteId: id
+          remoteInternal: internal
+          remoteParent: parent
+          remoteChildren: children
+        }
+      `)
+    })
+
+    it(`doesn't alias internal Gatsby fields on non-node types`, () => {
+      const fragment = `
+        fragment WithGatsbyFields on WithGatsbyFields {
+          id
+          internal
+          parent
+          children
+          fields {
+            id
+            internal
+            parent
+            children
+          }
+        }
+      `
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [nodeTypes.WithGatsbyFields],
+        customFragments: [fragment],
+      })
+
+      expect(queries.size).toEqual(1)
+      expect(printQuery(queries, `WithGatsbyFields`)).toEqual(dedent`
+        query LIST_WithGatsbyFields {
+          allWithGatsbyFields {
+            remoteTypeName: __typename
+            ...WithGatsbyFieldsId
+            ...WithGatsbyFields
+          }
+        }
+        
+        fragment WithGatsbyFieldsId on WithGatsbyFields {
+          remoteTypeName: __typename
+          remoteId: id
+        }
+  
+        fragment WithGatsbyFields on WithGatsbyFields {
+          remoteId: id
+          remoteInternal: internal
+          remoteParent: parent
+          remoteChildren: children
+          remoteFields: fields {
+            id
+            internal
+            parent
+            children
+          }
+        }
+      `)
+    })
   })
 
   describe(`Abstract types`, () => {
@@ -713,7 +717,7 @@ describe(`Happy path`, () => {
               createdAt
             }
           }
-          `
+          `,
         ],
       })
       expect(queries.size).toEqual(1)
