@@ -1105,7 +1105,8 @@ interface ISourceChanges {
 ## TODO:
 
 - [x] Allow complex nested id fields
-- [x] Support `variables` in `fetchNodeList` and other similar methods 
+- [x] Support `variables` in `fetchNodeList` and other similar methods
+- [ ] Add retries to default executor
 - [ ] Mime-type mapping on nodes
 - [ ] Ignore deleted nodes when resolving references
 - [ ] Allow custom arguments in schema customization?
