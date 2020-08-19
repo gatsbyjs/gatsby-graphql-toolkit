@@ -5,6 +5,9 @@ type Query {
   author(id: ID!): Author
   authors(limit: Int, offset: Int): [Author!]!
 
+  category(id: ID!): Category
+  categories(limit: Int, offset: Int): [Category]!
+
   entry(id: ID!): Entry
   entries(limit: Int, offset: Int): [Entry!]!
 }
@@ -24,6 +27,12 @@ type Author implements Entry & Named {
   posts: [Post!]!
   displayName: String!
   country: Country
+}
+
+type Category implements Named {
+  id: ID!
+  entries: [Entry]
+  displayName: String!
 }
 
 type Guest implements Entry & Named {

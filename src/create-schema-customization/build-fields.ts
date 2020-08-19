@@ -60,18 +60,16 @@ function collectGatsbyTypeFields(
   const collectedFields: IGatsbyFieldInfo[] = []
   const collectFromTypes = isObjectType(remoteType)
     ? [remoteType, ...remoteType.getInterfaces()]
-    : [remoteType, ...context.schema.getPossibleTypes(remoteType)]
+    : [remoteType]
 
-  const remoteTypeFields = remoteType.getFields()
+  // Interface includes fields explicitly requested on interface type itself.
+  //  It doesn't include any fields selected on it's implementations only.
+  //  It is responsibility of the `compileNodeQueries` to include all the
+  //  necessary interface fields.
 
   for (const type of collectFromTypes) {
     const fetchedFields = fetchedTypeMap.get(type.name) ?? []
     for (const { name, alias } of fetchedFields.values()) {
-      if (name !== `__typename` && !remoteTypeFields[name]) {
-        // Possible when collecting fields of interface type and checking one of
-        // it's implementation fields that is not a part of the interface
-        continue
-      }
       collectedFields.push({
         gatsbyFieldName: alias,
         remoteFieldName: name,
