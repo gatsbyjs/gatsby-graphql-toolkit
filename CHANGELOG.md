@@ -1,3 +1,36 @@
+# v0.4.0
+
+## Schema customization: changed the logic of collecting interface fields
+
+Say your remote schema has those types:
+```graphql
+interface Iface {
+  foo: String
+}
+type Foo implements Iface {
+  foo: String
+}
+```
+
+Before this version the following fragment would add the field `foo`
+to Gatsby version of your remote `Iface` type:
+
+```graphql
+fragment FooFragment on Foo {
+  foo
+}
+```
+
+After this version it will not. Only the fragment on `Iface` specifically will add it:
+
+```graphql
+fragment IfaceFragment on Iface {
+  foo
+}
+```
+
+
+
 # v0.3.0
 
 ## Use ID fragments instead of `remoteIdFields` in the config
