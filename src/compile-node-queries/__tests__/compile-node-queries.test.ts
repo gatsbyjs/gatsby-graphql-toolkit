@@ -607,6 +607,45 @@ describe(`Happy path`, () => {
         }
       `)
     })
+
+    it(`always aliases __typename`, () => {
+      const fragment = `
+        fragment WithGatsbyFields on WithGatsbyFields {
+          __typename
+          fields {
+            __typename
+          }
+        }
+      `
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [nodeTypes.WithGatsbyFields],
+        customFragments: [fragment],
+      })
+
+      expect(queries.size).toEqual(1)
+      expect(printQuery(queries, `WithGatsbyFields`)).toEqual(dedent`
+        query LIST_WithGatsbyFields {
+          allWithGatsbyFields {
+            remoteTypeName: __typename
+            ...WithGatsbyFieldsId
+            ...WithGatsbyFields
+          }
+        }
+        
+        fragment WithGatsbyFieldsId on WithGatsbyFields {
+          remoteTypeName: __typename
+          remoteId: id
+        }
+        
+        fragment WithGatsbyFields on WithGatsbyFields {
+          remoteTypeName: __typename
+          remoteFields: fields {
+            remoteTypeName: __typename
+          }
+        }
+      `)
+    })
   })
 
   describe(`Abstract types`, () => {

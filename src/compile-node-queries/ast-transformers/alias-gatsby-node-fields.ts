@@ -23,9 +23,7 @@ export function aliasGatsbyNodeFields(
 ): Visitor<ASTKindToNode> {
   return {
     Field: (node: FieldNode) => {
-      const type = args.typeInfo.getParentType()
-
-      if (type && isNodeType(type, args)) {
+      if (isTypeName(node) || isNodeType(args.typeInfo.getParentType(), args)) {
         return aliasField(node, args.gatsbyFieldAliases)
       }
       return undefined
@@ -33,10 +31,20 @@ export function aliasGatsbyNodeFields(
   }
 }
 
+function isTypeName(node: FieldNode) {
+  return (
+    node.name.value === `__typename` &&
+    (!node.alias || node.alias.value === `__typename`)
+  )
+}
+
 export function isNodeType(
-  type: GraphQLCompositeType,
+  type: GraphQLCompositeType | null | void,
   args: IAliasGatsbyNodeFieldsArgs
 ): boolean {
+  if (!type) {
+    return false
+  }
   if (isUnionType(type)) {
     return false
   }
