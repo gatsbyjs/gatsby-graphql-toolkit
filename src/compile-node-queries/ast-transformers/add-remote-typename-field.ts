@@ -3,7 +3,7 @@ import {
   Visitor,
   ASTKindToNode,
   SelectionSetNode,
-  isAbstractType,
+  isCompositeType,
 } from "graphql"
 import * as GraphQLAST from "../../utils/ast-nodes"
 import { isNode } from "../../utils/ast-predicates"
@@ -13,7 +13,7 @@ interface IAddTypeNameArgs {
 }
 
 /**
- * Adds __typename to all fields of abstract types, i.e. transforms:
+ * Adds __typename to all fields of composite types, i.e. transforms:
  * ```
  * {
  *   node { foo }
@@ -25,7 +25,7 @@ interface IAddTypeNameArgs {
  *   node { __typename foo }
  * }
  * ```
- * (where `node` is of Interface or Union type)
+ * (where `node` is of Object, Interface or Union type)
  */
 export function addRemoteTypeNameField({
   typeInfo,
@@ -36,7 +36,7 @@ export function addRemoteTypeNameField({
         isNode(parent) &&
         parent.kind === `Field` &&
         !hasTypenameField(node) &&
-        isAbstractType(typeInfo.getType())
+        isCompositeType(typeInfo.getType())
       ) {
         return {
           ...node,

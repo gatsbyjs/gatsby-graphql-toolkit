@@ -295,6 +295,7 @@ describe(`Happy path`, () => {
       fragment Bar on Bar {
         bar
         foo {
+          remoteTypeName: __typename
           enum
           int
         }
@@ -444,6 +445,7 @@ describe(`Happy path`, () => {
             remoteTypeName: __typename
             testId
             remoteId: id {
+              remoteTypeName: __typename
               uid
             }
           }
@@ -478,6 +480,7 @@ describe(`Happy path`, () => {
           withComplexId1 {
             remoteTypeName: __typename
             remoteId: id {
+              remoteTypeName: __typename
               kind
               uid
             }
@@ -599,6 +602,7 @@ describe(`Happy path`, () => {
           remoteParent: parent
           remoteChildren: children
           remoteFields: fields {
+            remoteTypeName: __typename
             id
             internal
             parent
