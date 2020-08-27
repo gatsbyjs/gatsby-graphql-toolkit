@@ -51,20 +51,8 @@ describe(`Collect fields from queries`, () => {
 })
 
 describe(`Interface type fields`, () => {
-  function buildInterfaceFields(
-    ifaceName: string,
-    nodeDefs: Array<IGatsbyNodeConfig>
-  ) {
-    const gatsbyNodeDefs = createGatsbyNodeDefinitions(nodeDefs)
-    const context = createTestContext({ gatsbyNodeDefs })
-    const ifaceDef = buildTypeDefinition(context, ifaceName)
-    // FIXME: export GatsbyGraphQLInterfaceType from gatsby
-    // @ts-ignore
-    return ifaceDef.config.fields
-  }
-
   it(`collects all fields of interface type`, () => {
-    const entryFields = buildInterfaceFields(`Entry`, [
+    const entryFields = buildTypeFields(`Entry`, [
       {
         remoteTypeName: `Category`,
         queries: `{ categories { entries { id } } }`,
@@ -78,7 +66,7 @@ describe(`Interface type fields`, () => {
   })
 
   it(`adds aliased __typename to interface fields`, () => {
-    const entryFields = buildInterfaceFields(`Entry`, [
+    const entryFields = buildTypeFields(`Entry`, [
       {
         remoteTypeName: `Category`,
         queries: `{ categories { entries { remoteTypeName: __typename } } }`,
@@ -92,7 +80,7 @@ describe(`Interface type fields`, () => {
   })
 
   it(`doesn't add fields referenced in implementations only`, () => {
-    const entryFields = buildInterfaceFields(`Entry`, [
+    const entryFields = buildTypeFields(`Entry`, [
       {
         remoteTypeName: `Author`,
         queries: `{ author { id } }`,
@@ -103,7 +91,7 @@ describe(`Interface type fields`, () => {
   })
 
   it(`adds fields from inline fragments defined on interface`, () => {
-    const entryFields = buildInterfaceFields(`Entry`, [
+    const entryFields = buildTypeFields(`Entry`, [
       {
         remoteTypeName: `Author`,
         queries: `{ author { ...on Entry { id } } }`,
@@ -116,7 +104,7 @@ describe(`Interface type fields`, () => {
   })
 
   it(`adds fields from fragments defined on interface`, () => {
-    const entryFields = buildInterfaceFields(`Entry`, [
+    const entryFields = buildTypeFields(`Entry`, [
       {
         remoteTypeName: `Author`,
         queries: `
@@ -131,3 +119,15 @@ describe(`Interface type fields`, () => {
     })
   })
 })
+
+function buildTypeFields(
+  remoteTypeName: string,
+  nodeDefs: Array<IGatsbyNodeConfig>
+) {
+  const gatsbyNodeDefs = createGatsbyNodeDefinitions(nodeDefs)
+  const context = createTestContext({ gatsbyNodeDefs })
+  const typeDef = buildTypeDefinition(context, remoteTypeName)
+  // FIXME: export GatsbyGraphQLInterfaceType from gatsby
+  // @ts-ignore
+  return typeDef.config.fields
+}
