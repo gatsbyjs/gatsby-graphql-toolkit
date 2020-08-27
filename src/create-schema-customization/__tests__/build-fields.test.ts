@@ -17,7 +17,37 @@ describe(`Collect fields from queries`, () => {
   it.todo(
     `additionally collects fields from all type interfaces for object types`
   )
-  it.todo(`collects field aliases as type fields`)
+  it(`collects field aliases as type fields`, () => {
+    const entryFields = buildTypeFields(`Category`, [
+      {
+        remoteTypeName: `Category`,
+        queries: `{
+          categories {
+            entries { id }
+            aliasedEntries: entries { id }
+            displayName
+            aliasedDisplayName: displayName
+          }
+        }`,
+      },
+    ])
+
+    expect(Object.keys(entryFields ?? {})).toHaveLength(4)
+    expect(entryFields).toMatchObject({
+      "aliasedDisplayName": {
+        "type": "String!"
+      },
+      "aliasedEntries": {
+        "type": "[TestApiEntry]"
+      },
+      "displayName": {
+        "type": "String!"
+      },
+      "entries": {
+        "type": "[TestApiEntry]"
+      }
+    })
+  })
   it.todo(`correctly skips __typename field`)
 
   it.todo(`collects fields of type object`)
