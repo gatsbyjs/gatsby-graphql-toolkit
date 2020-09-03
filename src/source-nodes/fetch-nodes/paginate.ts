@@ -105,6 +105,7 @@ export function planPagination(
   const adapter = resolvePaginationAdapter(
     document,
     operationName,
+    variables,
     context.paginationAdapters
   )
   const fieldPath = findPaginatedFieldPath(document, operationName, adapter)
@@ -131,20 +132,27 @@ export function planPagination(
 export function resolvePaginationAdapter(
   document: DocumentNode,
   operationName: string,
+  customVariables: object = {},
   paginationAdapters: IPaginationAdapter<any, any>[] = PaginationAdapters
 ): IPaginationAdapter<any, any> {
   const queryNode = findQueryDefinitionNode(document, operationName)
 
+  // All variable names, including pagination variables and custom query variables
   const variableNames =
     queryNode.variableDefinitions?.map(
       variable => variable.variable.name.value
     ) ?? []
 
-  const variableSet = new Set(variableNames)
+  const customVariableNames = Object.keys(customVariables)
+
+  const restVariableNames = variableNames.filter(
+    name => !customVariableNames.includes(name)
+  )
+  const restVariableSet = new Set(restVariableNames)
   const adapter = paginationAdapters.find(
     s =>
-      s.expectedVariableNames.length === variableNames.length &&
-      s.expectedVariableNames.every(name => variableSet.has(name))
+      s.expectedVariableNames.length === restVariableNames.length &&
+      s.expectedVariableNames.every(name => restVariableSet.has(name))
   )
   if (!adapter) {
     throw new Error(
