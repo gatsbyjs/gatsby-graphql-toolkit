@@ -88,7 +88,13 @@ export function buildTypeUsagesMap(
         enter: node => {
           const parentType = typeInfo.getParentType()
           if (!parentType) {
-            throw new Error(`Visited field is expected to have parent type`)
+            const fragmentName = typeUsagePath[0]
+            const pathStr = typeUsagePath.join(`,`)
+            throw new Error(
+              `Field "${node.name.value}" at path "${pathStr}" has no parent type. ` +
+                `This may indicate that your remote schema had changed ` +
+                `and your fragment "${fragmentName}" must be updated.`
+            )
           }
           const typeUsageKey = typeUsagePath.join(`__`)
 
