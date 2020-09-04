@@ -16,7 +16,7 @@ import { removeUnusedFragments } from "./ast-transformers/remove-unused-fragment
 import {
   compileNodeFragments,
   compileNonNodeFragments,
-} from "./compile-node-fragments"
+} from "./compile-fragments"
 import {
   GraphQLSource,
   IGatsbyFieldAliases,
