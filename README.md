@@ -36,6 +36,7 @@ See this PR for progress: https://github.com/gatsbyjs/gatsby/pull/25468
   - [6. Source nodes](#6-source-nodes)
 - [Sourcing changes (delta)](#sourcing-changes-delta)
 - [Automatic Pagination Explained](#automatic-pagination-explained)
+- [Manual query execution](#manual-query-execution)
 - [Configuration](#configuration)
   - [Query executor](#query-executor)
   - [Gatsby field aliases](#gatsby-field-aliases)
@@ -216,6 +217,10 @@ Settings explained:
 
 - `queries` are required for node sourcing.
   They are combined with custom [GraphQL fragments][17] for actual data fetching (see the next two steps).
+  Queries with a `LIST_` prefix are automatically executed and paginated during node sourcing.
+  
+  You can also define custom queries without a `LIST_` prefix but then you will have
+  to [execute them manually](#manual-query-execution).
 
   Queries must contain a single GraphQL fragment with ID fields of this node type. ID fields are necessary to:
 
@@ -524,6 +529,9 @@ const gatsbyNodeTypes = [
 ]
 ```
 
+> Note the `NODE_` prefix on the query name. The toolkit will use it to identify the query for node 
+> refetching.
+
 When compiling queries in [step 4](#4-compile-sourcing-queries), the toolkit will spread
 all of your custom fragments in both queries, so the shape of the node will be identical when
 executing `LIST_POSTS` or `NODE_POST`.
@@ -602,6 +610,10 @@ given GraphQL query to fetch the next page of a field.
 
 This way the toolkit can paginate your queries automatically and express the
 result as `AsyncIterator` of your nodes for convenience and efficiency.
+
+## Manual query execution
+
+TODOC
 
 ## Configuration
 
