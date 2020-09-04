@@ -12,6 +12,7 @@ export {
   PaginationAdapters,
   LimitOffset,
   RelayForward,
+  NoPagination,
 } from "./config/pagination-adapters"
 
 export {

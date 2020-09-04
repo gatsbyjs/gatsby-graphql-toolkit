@@ -5,4 +5,4 @@ import { NoPagination } from "./no-pagination"
 export * from "./types"
 const PaginationAdapters = [NoPagination, LimitOffset, RelayForward]
 
-export { LimitOffset, RelayForward, PaginationAdapters }
+export { LimitOffset, RelayForward, NoPagination, PaginationAdapters }
