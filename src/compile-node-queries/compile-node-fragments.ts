@@ -88,14 +88,14 @@ export function compileNodeFragments(
     nodeReferenceFragmentMap: buildNodeReferenceFragmentMap(args),
     typeUsagesMap: buildTypeUsagesMap(args),
   }
-  const result = new Map<RemoteTypeName, FragmentDefinitionNode[]>()
-  for (const nodeConfig of args.gatsbyNodeTypes) {
-    result.set(
+  const nodeFragments = new Map<RemoteTypeName, FragmentDefinitionNode[]>()
+  for (const nodeConfig of context.gatsbyNodeTypes.values()) {
+    nodeFragments.set(
       nodeConfig.remoteTypeName,
       compileNormalizedNodeFragments(context, nodeConfig)
     )
   }
-  return result
+  return nodeFragments
 }
 
 interface ICompileFragmentsContext {
@@ -127,26 +127,70 @@ function compileNormalizedNodeFragments(
       )
     }
   }
-  return addNodeReferences(context, gatsbyNodeConfig, result)
+  return addNodeReferences(
+    context.schema,
+    context.nodeReferenceFragmentMap,
+    result
+  )
+}
+
+interface ICompileNonNodeFragmentsArgs {
+  schema: GraphQLSchema
+  gatsbyNodeTypes: IGatsbyNodeConfig[]
+  fragments: FragmentDefinitionNode[]
+}
+
+export function compileNonNodeFragments(args: ICompileNonNodeFragmentsArgs) {
+  const nonNodeFragments = findAllNonNodeFragments(args)
+  return addNodeReferences(
+    args.schema,
+    buildNodeReferenceFragmentMap(args),
+    nonNodeFragments
+  )
 }
 
 function addNodeReferences(
-  context: ICompileFragmentsContext,
-  gatsbyNodeConfig: IGatsbyNodeConfig,
-  normalizedFragments: FragmentDefinitionNode[]
+  schema: GraphQLSchema,
+  nodeReferenceFragmentMap: FragmentMap,
+  fragments: FragmentDefinitionNode[]
 ): FragmentDefinitionNode[] {
-  const typeInfo = new TypeInfo(context.schema)
-  const visitContext = { ...context, gatsbyNodeConfig, typeInfo }
+  const typeInfo = new TypeInfo(schema)
 
+  const visitContext = {
+    schema,
+    nodeReferenceFragmentMap,
+    typeInfo,
+  }
   const doc: DocumentNode = visit(
-    GraphQLAST.document(normalizedFragments),
-    visitWithTypeInfo(typeInfo,
+    GraphQLAST.document(fragments),
+    visitWithTypeInfo(
+      typeInfo,
       visitInParallel([
         replaceNodeSelectionWithReference(visitContext),
-        addRemoteTypeNameField(visitContext)
+        addRemoteTypeNameField(visitContext),
       ])
     )
   )
 
   return doc.definitions.filter(isFragment)
+}
+
+function findAllNonNodeFragments(
+  args: ICompileNonNodeFragmentsArgs
+): FragmentDefinitionNode[] {
+  const nodeTypes = new Set()
+  args.gatsbyNodeTypes.forEach(def => {
+    const type = args.schema.getType(def.remoteTypeName)
+    if (!isObjectType(type)) {
+      return
+    }
+    nodeTypes.add(type.name)
+    type.getInterfaces().forEach(iface => {
+      nodeTypes.add(iface.name)
+    })
+  })
+
+  return args.fragments.filter(
+    fragment => !nodeTypes.has(fragment.typeCondition.name.value)
+  )
 }

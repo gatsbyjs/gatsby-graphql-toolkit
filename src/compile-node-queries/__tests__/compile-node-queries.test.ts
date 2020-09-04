@@ -334,21 +334,23 @@ describe(`Happy path`, () => {
     `)
   })
 
-  // TODO
-  it.skip(`supports nested fragment spreads`, () => {
+  it(`supports nested fragment spreads`, () => {
     const queries = compileNodeQueries({
       schema,
       gatsbyNodeTypes: [nodeTypes.Bar],
       customFragments: [
         `
-          fragment Foo on Foo {
+          fragment Foo1 on Foo {
             string
+            ...Foo2
+          }
+          fragment Foo2 on Foo {
             enum
           }
           fragment Bar on Bar {
             foo {
               int
-              ...Foo
+              ...Foo1
             }
           }
         `,
@@ -365,15 +367,19 @@ describe(`Happy path`, () => {
       fragment BarId on Bar {
         testId
       }
-      fragment Foo on Foo {
-        string
-        enum
-      }
       fragment Bar on Bar {
         foo {
+          remoteTypeName: __typename
           int
-          ...Foo
+          ...Foo1
         }
+      }
+      fragment Foo1 on Foo {
+        string
+        ...Foo2
+      }
+      fragment Foo2 on Foo {
+        enum
       }
     `)
   })

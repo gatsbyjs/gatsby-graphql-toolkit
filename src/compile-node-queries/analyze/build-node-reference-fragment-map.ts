@@ -23,8 +23,8 @@ import { isField, isFragment } from "../../utils/ast-predicates"
  * For example:
  *
  * fragment NodeTypeReference on NodeType {
- *   remoteTypeName: __typename
- *   remoteNodeId: id
+ *   __typename
+ *   id
  * }
  *
  * Resulting map also includes fragments for node interfaces.

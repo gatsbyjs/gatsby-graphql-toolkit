@@ -7,20 +7,17 @@ import {
 import * as GraphQLAST from "../../utils/ast-nodes"
 import { isFragmentSpread } from "../../utils/ast-predicates"
 
-export function addFragmentSpreadsAndTypename(
-  fragments: FragmentDefinitionNode[]
+export function addNodeFragmentSpreadsAndTypename(
+  nodeFragments: FragmentDefinitionNode[]
 ): Visitor<ASTKindToNode> {
   return {
-    SelectionSet: (node, _, __, path) => {
-      if (path[0] === "FragmentDefinition") {
-        // Do not visit fragment sub-selections
-        return false
-      }
+    FragmentDefinition: () => false,
+    SelectionSet: node => {
       if (node.selections.some(isFragmentSpread)) {
         return GraphQLAST.selectionSet([
           GraphQLAST.field(`__typename`),
           ...withoutTypename(node.selections),
-          ...spreadAll(fragments),
+          ...spreadAll(nodeFragments),
         ])
       }
       return undefined

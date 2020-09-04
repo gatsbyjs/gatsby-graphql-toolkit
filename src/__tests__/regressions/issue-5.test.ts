@@ -34,16 +34,16 @@ it(`should spread fragments correctly when ID fragment is defined before the que
   })
 
   expect(printQuery(documents, `Foo`)).toEqual(dedent`
-    fragment FooId on Foo {
-      remoteTypeName: __typename
-      remoteId: id
-    }
     query LIST_Foo {
       nodes {
         remoteTypeName: __typename
         ...FooId
         ...Foo
       }
+    }
+    fragment FooId on Foo {
+      remoteTypeName: __typename
+      remoteId: id
     }
     fragment Foo on Foo {
       foo

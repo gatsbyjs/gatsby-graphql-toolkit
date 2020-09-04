@@ -5,15 +5,18 @@ import {
   parse,
   TypeInfo,
   visit,
-  visitInParallel,
   visitWithTypeInfo,
 } from "graphql"
 import { flatMap } from "lodash"
 import { defaultGatsbyFieldAliases } from "../config/default-gatsby-field-aliases"
 import { addVariableDefinitions } from "./ast-transformers/add-variable-definitions"
 import { aliasGatsbyNodeFields } from "./ast-transformers/alias-gatsby-node-fields"
-import { addFragmentSpreadsAndTypename } from "./ast-transformers/add-fragment-spreads-and-typename"
-import { compileNodeFragments } from "./compile-node-fragments"
+import { addNodeFragmentSpreadsAndTypename } from "./ast-transformers/add-node-fragment-spreads-and-typename"
+import { removeUnusedFragments } from "./ast-transformers/remove-unused-fragments"
+import {
+  compileNodeFragments,
+  compileNonNodeFragments,
+} from "./compile-node-fragments"
 import {
   GraphQLSource,
   IGatsbyFieldAliases,
@@ -60,6 +63,26 @@ export function compileNodeQueries({
     fragments,
   })
 
+  // Node fragments may still spread non-node fragments
+  // For example:
+  //
+  // fragment User on User {
+  //   dateOfBirth { ...UtcTime }
+  // }
+  //
+  // In this case the document must also contain this UtcTime fragment:
+  // fragment UtcTime on DateTime {
+  //   utcTime
+  // }
+  //
+  // So we add all non node fragments to all documents, but then
+  // filtering out unused fragments
+  const allNonNodeFragments = compileNonNodeFragments({
+    schema,
+    gatsbyNodeTypes,
+    fragments,
+  })
+
   gatsbyNodeTypes.forEach(config => {
     const def = compileDocument({
       schema,
@@ -67,7 +90,8 @@ export function compileNodeQueries({
       gatsbyFieldAliases,
       remoteTypeName: config.remoteTypeName,
       queries: parse(config.queries),
-      fragments: nodeFragmentMap.get(config.remoteTypeName)!, // FIXME
+      nodeFragments: nodeFragmentMap.get(config.remoteTypeName) ?? [],
+      nonNodeFragments: allNonNodeFragments,
     })
     documents.set(config.remoteTypeName, def)
   })
@@ -81,13 +105,18 @@ interface ICompileDocumentArgs {
   gatsbyFieldAliases: IGatsbyFieldAliases
   schema: GraphQLSchema
   queries: DocumentNode
-  fragments: FragmentDefinitionNode[]
+  nodeFragments: FragmentDefinitionNode[]
+  nonNodeFragments: FragmentDefinitionNode[]
 }
 
 function compileDocument(args: ICompileDocumentArgs) {
   const fullDocument: DocumentNode = {
     ...args.queries,
-    definitions: args.queries.definitions.concat(args.fragments),
+    definitions: [
+      ...args.queries.definitions,
+      ...args.nodeFragments,
+      ...args.nonNodeFragments,
+    ],
   }
 
   // Expected query variants:
@@ -99,17 +128,22 @@ function compileDocument(args: ICompileDocumentArgs) {
   //  2. { allNode(type: "User") { ...IDFragment ...UserFragment1 ...UserFragment2 }}
   const typeInfo = new TypeInfo(args.schema)
 
-  const doc: DocumentNode = visit(
+  // TODO: optimize visitor keys
+  let doc: DocumentNode = visit(
     fullDocument,
-    visitWithTypeInfo(
-      typeInfo,
-      visitInParallel([
-        addFragmentSpreadsAndTypename(args.fragments),
-        aliasGatsbyNodeFields({ ...args, typeInfo }),
-        addVariableDefinitions({ typeInfo }),
-      ])
-    )
+    addNodeFragmentSpreadsAndTypename(args.nodeFragments)
   )
+
+  doc = visit(
+    doc,
+    visitWithTypeInfo(typeInfo, aliasGatsbyNodeFields({ ...args, typeInfo }))
+  )
+  doc = visit(
+    doc,
+    visitWithTypeInfo(typeInfo, addVariableDefinitions({ typeInfo }))
+  )
+  doc = visit(doc, removeUnusedFragments())
+
   // Prettify:
   return removeIdFragmentDuplicates(args, doc)
 }
