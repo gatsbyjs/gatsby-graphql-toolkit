@@ -22,6 +22,10 @@ type Post implements Entry {
   author: Author!
 }
 
+type PostConnection {
+  items: [Post]
+}
+
 type Author implements Entry & Named {
   id: ID!
   posts: [Post!]!

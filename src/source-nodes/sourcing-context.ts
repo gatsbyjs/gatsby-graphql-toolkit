@@ -13,7 +13,7 @@ export function createSourcingContext(
 
   const {
     idTransform = createNodeIdTransform(),
-    typeNameTransform = createTypeNameTransform(config.gatsbyTypePrefix),
+    typeNameTransform = createTypeNameTransform(config),
     paginationAdapters = PaginationAdapters,
   } = config
 

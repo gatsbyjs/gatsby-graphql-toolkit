@@ -19,6 +19,26 @@ describe(`Build objectType`, () => {
     })
   })
 
+  it(`fixes collision of connection type names`, () => {
+    const gatsbyNodeDefs = createGatsbyNodeDefinitions([
+      { remoteTypeName: `Post`, queries: `{ posts { id } }` },
+    ])
+    const context = createTestContext({
+      gatsbyTypePrefix: "TestPrefix",
+      gatsbyNodeDefs,
+    })
+    const def = buildTypeDefinition(context, `PostConnection`)
+
+    // Gatsby creates its own type TestPrefixPostConnection
+    // for root-level allTestPrefixPost field.
+    // So when there is a remote PostConnection type, it should not have the
+    // same name "TestPrefixPostConnection".
+    // We must rename it to something else
+    expect(def).toMatchObject({
+      config: { name: "TestPrefixPostConnection_Remote" },
+    })
+  })
+
   it(`doesn't set extensions for non-node object type`, () => {
     const def = buildTypeDefinition(createTestContext(), `Country`)
 
