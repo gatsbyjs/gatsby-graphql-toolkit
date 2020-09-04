@@ -1,3 +1,22 @@
+# Unreleased
+
+## Feat: nested fragment spreads
+
+Now you can do things like this:
+
+```graphql
+fragment User on User {
+  dateOfBirth { ...UtcTime }
+}
+fragment UtcTime on DateTime {
+  utcTime
+}
+```
+
+Before v0.5.0 this set of fragments would have thrown an error because only 
+fragment on Node types were supported. Now nested fragment spreads on non-node types
+are supported as well.
+
 # v0.4.0
 
 ## Schema customization: changed the logic of collecting interface fields
