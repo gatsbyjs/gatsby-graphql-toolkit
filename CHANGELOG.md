@@ -17,6 +17,43 @@ Before v0.5.0 this set of fragments would have thrown an error because only
 fragment on Node types were supported. Now nested fragment spreads on non-node types
 are supported as well.
 
+## Fix: correctly add remoteTypeName to list fields
+
+Before this release the toolkit was incorrect fragments for the following schema:
+
+```graphql
+type Foo {
+  foo: String
+}
+type Bar {
+  fooList: [Foo!]!
+}
+```
+
+Before this release it compiled:
+
+```graphql
+fragment Bar on Bar {
+  fooList {
+    foo
+  }
+}
+```
+
+After this release it correctly compiles:
+
+```graphql
+fragment Bar on Bar {
+  fooList {
+    remoteTypeName: __typename
+    foo
+  }
+}
+```
+
+This is important for abstract types to resolve specific type
+when Gatsby runs queries.
+
 # v0.4.0
 
 ## Schema customization: changed the logic of collecting interface fields

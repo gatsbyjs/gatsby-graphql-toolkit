@@ -35,6 +35,7 @@ describe(`Happy path`, () => {
       testId: ID
       foo: Foo
       node: Node
+      nodeList: [Node!]!
       bar: String
       createdAt: Int
       updatedAt: Int
@@ -799,6 +800,51 @@ describe(`Happy path`, () => {
         }
       `)
     })
+  })
+
+  it(`adds __typename to every field of abstract type with listOf and nonNull wrappers`, () => {
+    const queries = compileNodeQueries({
+      schema,
+      gatsbyNodeTypes: [nodeTypes.Bar],
+      customFragments: [
+        `
+          fragment Bar on Bar {
+            nodeList {
+              createdAt
+            }
+          }
+          `,
+      ],
+    })
+    expect(queries.size).toEqual(1)
+    expect(printQuery(queries, `Bar`)).toEqual(dedent`
+        query LIST_Bar {
+          allBar {
+            remoteTypeName: __typename
+            ...BarId
+            ...Bar
+            ...Bar__nodeList
+          }
+        }
+        fragment BarId on Bar {
+          testId
+        }
+        fragment Bar on Bar {
+          nodeList {
+            remoteTypeName: __typename
+            ... on Foo {
+              createdAt
+            }
+            ... on Bar {
+              remoteTypeName: __typename
+              testId
+            }
+          }
+        }
+        fragment Bar__nodeList on Node {
+          createdAt
+        }
+      `)
   })
 
   describe(`Variables`, () => {
