@@ -442,6 +442,7 @@ describe(`Happy path`, () => {
         
         fragment WithComplexId1_Id on WithComplexId1 {
           remoteId: id {
+            remoteTypeName: __typename
             kind
             uid
           }
@@ -475,6 +476,7 @@ describe(`Happy path`, () => {
         fragment WithComplexId2_Id on WithComplexId2 {
           testId
           remoteId: id {
+            remoteTypeName: __typename
             uid
           }
         }

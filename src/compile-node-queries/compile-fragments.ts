@@ -10,7 +10,6 @@ import {
 import { FragmentMap, IGatsbyNodeConfig, RemoteTypeName } from "../types"
 import * as GraphQLAST from "../utils/ast-nodes"
 import { replaceNodeSelectionWithReference } from "./ast-transformers/replace-node-selection-with-reference"
-import { addRemoteTypeNameField } from "./ast-transformers/add-remote-typename-field"
 import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
 import {
   buildTypeUsagesMap,
@@ -164,11 +163,6 @@ function addNodeReferences(
     GraphQLAST.document(fragments),
     visitWithTypeInfo(typeInfo, replaceNodeSelectionWithReference(visitContext))
   )
-  doc = visit(
-    doc,
-    visitWithTypeInfo(typeInfo, addRemoteTypeNameField(visitContext))
-  )
-
   return doc.definitions.filter(isFragment)
 }
 

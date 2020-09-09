@@ -26,6 +26,7 @@ import {
 import { selectionSetIncludes } from "../utils/ast-compare"
 import { isFragment } from "../utils/ast-predicates"
 import { promptUpgradeIfRequired } from "../utils/upgrade-prompt"
+import { addRemoteTypeNameField } from "./ast-transformers/add-remote-typename-field"
 
 interface ICompileNodeQueriesArgs {
   schema: GraphQLSchema
@@ -133,7 +134,10 @@ function compileDocument(args: ICompileDocumentArgs) {
     fullDocument,
     addNodeFragmentSpreadsAndTypename(args.nodeFragments)
   )
-
+  doc = visit(
+    doc,
+    visitWithTypeInfo(typeInfo, addRemoteTypeNameField({ typeInfo }))
+  )
   doc = visit(
     doc,
     visitWithTypeInfo(typeInfo, aliasGatsbyNodeFields({ ...args, typeInfo }))
