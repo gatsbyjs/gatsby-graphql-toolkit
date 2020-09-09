@@ -6,12 +6,15 @@ import {
   GraphQLSchema,
   isObjectType,
   parse,
-  SelectionNode,
 } from "graphql"
 import { flatMap } from "lodash"
 import { FragmentMap, IGatsbyNodeConfig, RemoteTypeName } from "../../types"
 import * as GraphQLAST from "../../utils/ast-nodes"
-import { isField, isFragment } from "../../utils/ast-predicates"
+import {
+  isField,
+  isFragment,
+  isTypeNameField,
+} from "../../utils/ast-predicates"
 
 /**
  * Create reference fragment for every node type
@@ -88,7 +91,7 @@ export function buildNodeReferenceFragmentMap({
       [
         GraphQLAST.field(`__typename`),
         ...idFragment.selectionSet.selections.filter(
-          selection => !isTypeName(selection)
+          selection => !isTypeNameField(selection)
         ),
       ]
     )
@@ -136,11 +139,14 @@ function combineReferenceFragments(
     type => nodesMap.get(type.name)?.selectionSet.selections ?? []
   ).filter(isField)
 
-  return GraphQLAST.fragmentDefinition(
-    interfaceName,
-    interfaceName,
-    dedupeFieldsRecursively(allIdFields.filter(isField))
+  const allReferenceFieldsWithoutTypename = dedupeFieldsRecursively(
+    allIdFields.filter(f => isField(f) && !isTypeNameField(f))
   )
+
+  return GraphQLAST.fragmentDefinition(interfaceName, interfaceName, [
+    GraphQLAST.field(`__typename`),
+    ...allReferenceFieldsWithoutTypename,
+  ])
 }
 
 function dedupeFieldsRecursively(fields: FieldNode[]): FieldNode[] {
@@ -185,8 +191,4 @@ function hasAllIdFields(
     }
   }
   return true
-}
-
-function isTypeName(selection: SelectionNode): boolean {
-  return selection.kind === "Field" && selection.name.value === `__typename`
 }

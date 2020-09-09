@@ -5,7 +5,6 @@ import {
   isObjectType,
   TypeInfo,
   visit,
-  visitInParallel,
   visitWithTypeInfo,
 } from "graphql"
 import { FragmentMap, IGatsbyNodeConfig, RemoteTypeName } from "../types"
@@ -161,15 +160,13 @@ function addNodeReferences(
     nodeReferenceFragmentMap,
     typeInfo,
   }
-  const doc: DocumentNode = visit(
+  let doc: DocumentNode = visit(
     GraphQLAST.document(fragments),
-    visitWithTypeInfo(
-      typeInfo,
-      visitInParallel([
-        replaceNodeSelectionWithReference(visitContext),
-        addRemoteTypeNameField(visitContext),
-      ])
-    )
+    visitWithTypeInfo(typeInfo, replaceNodeSelectionWithReference(visitContext))
+  )
+  doc = visit(
+    doc,
+    visitWithTypeInfo(typeInfo, addRemoteTypeNameField(visitContext))
   )
 
   return doc.definitions.filter(isFragment)

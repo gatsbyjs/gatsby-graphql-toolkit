@@ -6,6 +6,7 @@ import {
   FragmentDefinitionNode,
   FragmentSpreadNode,
   OperationDefinitionNode,
+  SelectionNode,
   visit,
 } from "graphql"
 
@@ -47,4 +48,12 @@ export function isNonEmptyFragment(
     },
   })
   return hasFields
+}
+
+export function isTypeNameField(selection: SelectionNode): boolean {
+  return (
+    selection.kind === "Field" &&
+    selection.name.value === `__typename` &&
+    !selection.alias
+  )
 }

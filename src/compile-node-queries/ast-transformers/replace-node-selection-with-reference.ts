@@ -11,6 +11,7 @@ import {
 } from "graphql"
 import { FragmentMap } from "../../types"
 import * as GraphQLAST from "../../utils/ast-nodes"
+import { isTypeNameField } from "../../utils/ast-predicates"
 
 interface ITransformArgs {
   schema: GraphQLSchema
@@ -64,27 +65,31 @@ function transformInterfaceField(
   type: GraphQLInterfaceType
 ): FieldNode | undefined {
   const possibleTypes = args.schema.getPossibleTypes(type)
-  const nodeImeplementations = possibleTypes.some(type =>
+  const nodeImplementations = possibleTypes.some(type =>
     args.nodeReferenceFragmentMap.has(type.name)
   )
-  if (!nodeImeplementations) {
+  if (!nodeImplementations) {
     return
   }
   // Replace with inline fragment for each implementation
   const selections: SelectionNode[] = possibleTypes.map(type => {
     const nodeReferenceFragment = args.nodeReferenceFragmentMap.get(type.name)
+    const inlineFragmentSelections = nodeReferenceFragment
+      ? nodeReferenceFragment.selectionSet.selections
+      : node.selectionSet?.selections ?? []
+
+    // Filter out __typename field from inline fragments because we add it to the field itself below
+    //   (just a prettify thing)
     return GraphQLAST.inlineFragment(
       type.name,
-      nodeReferenceFragment
-        ? nodeReferenceFragment.selectionSet.selections
-        : node.selectionSet?.selections ?? []
+      inlineFragmentSelections.filter(selection => !isTypeNameField(selection))
     )
   })
   return {
     ...node,
     selectionSet: {
       kind: "SelectionSet",
-      selections,
+      selections: [GraphQLAST.field(`__typename`), ...selections],
     },
   }
 }
