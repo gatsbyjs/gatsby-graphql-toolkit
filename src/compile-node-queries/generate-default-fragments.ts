@@ -72,7 +72,10 @@ export function generateDefaultFragmentNodes(
       ...config.gatsbyFieldAliases,
     },
     schema: config.schema,
-    gatsbyNodeTypes: config.gatsbyNodeTypes,
+    gatsbyNodeTypes: config.gatsbyNodeTypes.reduce(
+      (map, config) => map.set(config.remoteTypeName, config),
+      new Map<RemoteTypeName, IGatsbyNodeConfig>()
+    ),
     fragmentMap: buildTypeFragmentMap(config),
     nodeReferenceFragmentMap: buildNodeReferenceFragmentMap(config),
   }
@@ -91,7 +94,7 @@ interface IGenerateDefaultFragmentContext {
   gatsbyFieldAliases: IGatsbyFieldAliases
   fragmentMap: FragmentMap
   nodeReferenceFragmentMap: FragmentMap
-  gatsbyNodeTypes: IGatsbyNodeConfig[]
+  gatsbyNodeTypes: Map<RemoteTypeName, IGatsbyNodeConfig>
 }
 
 function generateDefaultFragment(

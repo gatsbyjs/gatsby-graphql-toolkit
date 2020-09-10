@@ -19,13 +19,16 @@ import {
 } from "./compile-fragments"
 import {
   GraphQLSource,
+  ICompileQueriesContext,
   IGatsbyFieldAliases,
   IGatsbyNodeConfig,
   RemoteTypeName,
 } from "../types"
-import { selectionSetIncludes } from "../utils/ast-compare"
 import { isFragment } from "../utils/ast-predicates"
 import { promptUpgradeIfRequired } from "../utils/upgrade-prompt"
+import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
+import { buildTypeUsagesMap } from "./analyze/build-type-usages-map"
+import { selectionSetIncludes } from "../utils/ast-compare"
 import { addRemoteTypeNameField } from "./ast-transformers/add-remote-typename-field"
 
 interface ICompileNodeQueriesArgs {
@@ -41,28 +44,12 @@ interface ICompileNodeQueriesArgs {
  * Combines `queries` from node types config with any user-defined
  * fragments and produces final queries used for node sourcing.
  */
-export function compileNodeQueries({
-  schema,
-  gatsbyNodeTypes,
-  gatsbyFieldAliases = defaultGatsbyFieldAliases,
-  customFragments,
-}: ICompileNodeQueriesArgs): Map<RemoteTypeName, DocumentNode> {
-  promptUpgradeIfRequired(gatsbyNodeTypes)
-
-  const documents = new Map<RemoteTypeName, DocumentNode>()
-  const allFragmentDocs: DocumentNode[] = []
-  customFragments.forEach(fragmentString => {
-    allFragmentDocs.push(parse(fragmentString))
-  })
-  const fragments = flatMap(allFragmentDocs, doc =>
-    doc.definitions.filter(isFragment)
-  )
-
-  const nodeFragmentMap = compileNodeFragments({
-    schema,
-    gatsbyNodeTypes,
-    fragments,
-  })
+export function compileNodeQueries(
+  args: ICompileNodeQueriesArgs
+): Map<RemoteTypeName, DocumentNode> {
+  promptUpgradeIfRequired(args.gatsbyNodeTypes)
+  const context = createCompilationContext(args)
+  const nodeFragmentMap = compileNodeFragments(context)
 
   // Node fragments may still spread non-node fragments
   // For example:
@@ -78,19 +65,12 @@ export function compileNodeQueries({
   //
   // So we add all non node fragments to all documents, but then
   // filtering out unused fragments
-  const allNonNodeFragments = compileNonNodeFragments({
-    schema,
-    gatsbyNodeTypes,
-    fragments,
-  })
+  const allNonNodeFragments = compileNonNodeFragments(context)
 
-  gatsbyNodeTypes.forEach(config => {
-    const def = compileDocument({
-      schema,
-      gatsbyNodeTypes,
-      gatsbyFieldAliases,
+  const documents = new Map<RemoteTypeName, DocumentNode>()
+  args.gatsbyNodeTypes.forEach(config => {
+    const def = compileDocument(context, {
       remoteTypeName: config.remoteTypeName,
-      queries: parse(config.queries),
       nodeFragments: nodeFragmentMap.get(config.remoteTypeName) ?? [],
       nonNodeFragments: allNonNodeFragments,
     })
@@ -102,21 +82,28 @@ export function compileNodeQueries({
 
 interface ICompileDocumentArgs {
   remoteTypeName: RemoteTypeName
-  gatsbyNodeTypes: Array<IGatsbyNodeConfig>
-  gatsbyFieldAliases: IGatsbyFieldAliases
-  schema: GraphQLSchema
-  queries: DocumentNode
   nodeFragments: FragmentDefinitionNode[]
   nonNodeFragments: FragmentDefinitionNode[]
 }
 
-function compileDocument(args: ICompileDocumentArgs) {
+function compileDocument(
+  context: ICompileQueriesContext,
+  { remoteTypeName, nodeFragments, nonNodeFragments }: ICompileDocumentArgs
+) {
+  const queries = context.originalConfigQueries.get(remoteTypeName)
+
+  if (!queries) {
+    throw new Error(
+      `Could not find config queries for type "${remoteTypeName}"`
+    )
+  }
+
   const fullDocument: DocumentNode = {
-    ...args.queries,
+    ...queries,
     definitions: [
-      ...args.queries.definitions,
-      ...args.nodeFragments,
-      ...args.nonNodeFragments,
+      ...queries.definitions,
+      ...nodeFragments,
+      ...nonNodeFragments,
     ],
   }
 
@@ -127,12 +114,12 @@ function compileDocument(args: ICompileDocumentArgs) {
   // We want to transform them to:
   //  1. { allUser { ...IDFragment ...UserFragment1 ...UserFragment2 }}
   //  2. { allNode(type: "User") { ...IDFragment ...UserFragment1 ...UserFragment2 }}
-  const typeInfo = new TypeInfo(args.schema)
+  const typeInfo = new TypeInfo(context.schema)
 
   // TODO: optimize visitor keys
   let doc: DocumentNode = visit(
     fullDocument,
-    addNodeFragmentSpreadsAndTypename(args.nodeFragments)
+    addNodeFragmentSpreadsAndTypename(nodeFragments)
   )
   doc = visit(
     doc,
@@ -140,7 +127,7 @@ function compileDocument(args: ICompileDocumentArgs) {
   )
   doc = visit(
     doc,
-    visitWithTypeInfo(typeInfo, aliasGatsbyNodeFields({ ...args, typeInfo }))
+    visitWithTypeInfo(typeInfo, aliasGatsbyNodeFields({ ...context, typeInfo }))
   )
   doc = visit(
     doc,
@@ -149,11 +136,11 @@ function compileDocument(args: ICompileDocumentArgs) {
   doc = visit(doc, removeUnusedFragments())
 
   // Prettify:
-  return removeIdFragmentDuplicates(args, doc)
+  return removeIdFragmentDuplicates(remoteTypeName, doc)
 }
 
 function removeIdFragmentDuplicates(
-  args: ICompileDocumentArgs,
+  remoteTypeName: RemoteTypeName,
   doc: DocumentNode
 ): DocumentNode {
   // Assume ID fragment is listed first
@@ -161,7 +148,7 @@ function removeIdFragmentDuplicates(
 
   if (!idFragment) {
     throw new Error(
-      `Missing ID Fragment in type config for "${args.remoteTypeName}"`
+      `Missing ID Fragment in type config for "${remoteTypeName}"`
     )
   }
   const duplicates = doc.definitions
@@ -196,4 +183,31 @@ function removeIdFragmentDuplicates(
       return false
     },
   })
+}
+
+function createCompilationContext(
+  args: ICompileNodeQueriesArgs
+): ICompileQueriesContext {
+  const allFragmentDocs: DocumentNode[] = []
+  args.customFragments.forEach(fragmentString => {
+    allFragmentDocs.push(parse(fragmentString))
+  })
+  const fragments = flatMap(allFragmentDocs, doc =>
+    doc.definitions.filter(isFragment)
+  )
+  return {
+    schema: args.schema,
+    nodeReferenceFragmentMap: buildNodeReferenceFragmentMap(args),
+    typeUsagesMap: buildTypeUsagesMap({ ...args, fragments }),
+    gatsbyNodeTypes: args.gatsbyNodeTypes.reduce(
+      (map, config) => map.set(config.remoteTypeName, config),
+      new Map()
+    ),
+    originalConfigQueries: args.gatsbyNodeTypes.reduce(
+      (map, config) => map.set(config.remoteTypeName, parse(config.queries)),
+      new Map()
+    ),
+    originalCustomFragments: fragments,
+    gatsbyFieldAliases: args.gatsbyFieldAliases ?? defaultGatsbyFieldAliases,
+  }
 }

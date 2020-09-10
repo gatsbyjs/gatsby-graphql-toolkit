@@ -7,21 +7,15 @@ import {
   visit,
   visitWithTypeInfo,
 } from "graphql"
-import { FragmentMap, IGatsbyNodeConfig, RemoteTypeName } from "../types"
+import {
+  FragmentMap,
+  ICompileQueriesContext,
+  IGatsbyNodeConfig,
+  RemoteTypeName,
+} from "../types"
 import * as GraphQLAST from "../utils/ast-nodes"
 import { replaceNodeSelectionWithReference } from "./ast-transformers/replace-node-selection-with-reference"
-import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fragment-map"
-import {
-  buildTypeUsagesMap,
-  TypeUsagesMap,
-} from "./analyze/build-type-usages-map"
 import { isFragment } from "../utils/ast-predicates"
-
-interface ICompileNodeFragmentsArgs {
-  schema: GraphQLSchema
-  gatsbyNodeTypes: IGatsbyNodeConfig[]
-  fragments: FragmentDefinitionNode[]
-}
 
 /**
  * Compiles all user-defined custom fragments into "node fragments".
@@ -75,17 +69,8 @@ interface ICompileNodeFragmentsArgs {
  * `
  */
 export function compileNodeFragments(
-  args: ICompileNodeFragmentsArgs
+  context: ICompileQueriesContext
 ): Map<RemoteTypeName, FragmentDefinitionNode[]> {
-  const context: ICompileFragmentsContext = {
-    schema: args.schema,
-    gatsbyNodeTypes: args.gatsbyNodeTypes.reduce(
-      (map, config) => map.set(config.remoteTypeName, config),
-      new Map()
-    ),
-    nodeReferenceFragmentMap: buildNodeReferenceFragmentMap(args),
-    typeUsagesMap: buildTypeUsagesMap(args),
-  }
   const nodeFragments = new Map<RemoteTypeName, FragmentDefinitionNode[]>()
   for (const nodeConfig of context.gatsbyNodeTypes.values()) {
     nodeFragments.set(
@@ -96,15 +81,8 @@ export function compileNodeFragments(
   return nodeFragments
 }
 
-interface ICompileFragmentsContext {
-  schema: GraphQLSchema
-  gatsbyNodeTypes: Map<RemoteTypeName, IGatsbyNodeConfig>
-  typeUsagesMap: TypeUsagesMap
-  nodeReferenceFragmentMap: FragmentMap
-}
-
 function compileNormalizedNodeFragments(
-  context: ICompileFragmentsContext,
+  context: ICompileQueriesContext,
   gatsbyNodeConfig: IGatsbyNodeConfig
 ): FragmentDefinitionNode[] {
   const { schema, typeUsagesMap } = context
@@ -132,17 +110,11 @@ function compileNormalizedNodeFragments(
   )
 }
 
-interface ICompileNonNodeFragmentsArgs {
-  schema: GraphQLSchema
-  gatsbyNodeTypes: IGatsbyNodeConfig[]
-  fragments: FragmentDefinitionNode[]
-}
-
-export function compileNonNodeFragments(args: ICompileNonNodeFragmentsArgs) {
-  const nonNodeFragments = findAllNonNodeFragments(args)
+export function compileNonNodeFragments(context: ICompileQueriesContext) {
+  const nonNodeFragments = findAllNonNodeFragments(context)
   return addNodeReferences(
-    args.schema,
-    buildNodeReferenceFragmentMap(args),
+    context.schema,
+    context.nodeReferenceFragmentMap,
     nonNodeFragments
   )
 }
@@ -167,7 +139,7 @@ function addNodeReferences(
 }
 
 function findAllNonNodeFragments(
-  args: ICompileNonNodeFragmentsArgs
+  args: ICompileQueriesContext
 ): FragmentDefinitionNode[] {
   const nodeTypes = new Set()
   args.gatsbyNodeTypes.forEach(def => {
@@ -181,7 +153,7 @@ function findAllNonNodeFragments(
     })
   })
 
-  return args.fragments.filter(
+  return args.originalCustomFragments.filter(
     fragment => !nodeTypes.has(fragment.typeCondition.name.value)
   )
 }

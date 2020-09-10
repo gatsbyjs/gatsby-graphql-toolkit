@@ -10,6 +10,7 @@ import {
   Source,
 } from "graphql"
 import { IPaginationAdapter } from "./config/pagination-adapters"
+import { TypeUsagesMap } from "./compile-node-queries/analyze/build-type-usages-map"
 
 export type RemoteTypeName = string
 export type RemoteFieldAlias = string
@@ -133,6 +134,16 @@ export interface ISchemaCustomizationContext extends ISourcingConfig {
   gatsbyFieldAliases: IGatsbyFieldAliases
   idTransform: INodeIdTransform
   typeNameTransform: ITypeNameTransform
+}
+
+export interface ICompileQueriesContext {
+  schema: GraphQLSchema
+  gatsbyNodeTypes: Map<RemoteTypeName, IGatsbyNodeConfig>
+  typeUsagesMap: TypeUsagesMap
+  nodeReferenceFragmentMap: FragmentMap
+  originalConfigQueries: Map<RemoteTypeName, DocumentNode>
+  originalCustomFragments: FragmentDefinitionNode[]
+  gatsbyFieldAliases: IGatsbyFieldAliases
 }
 
 export interface IRemoteFieldUsage {

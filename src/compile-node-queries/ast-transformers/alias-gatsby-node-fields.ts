@@ -8,11 +8,15 @@ import {
   isObjectType,
   isUnionType,
 } from "graphql"
-import { IGatsbyFieldAliases, IGatsbyNodeConfig } from "../../types"
+import {
+  IGatsbyFieldAliases,
+  IGatsbyNodeConfig,
+  RemoteTypeName,
+} from "../../types"
 import * as GraphQLAST from "../../utils/ast-nodes"
 
 interface IAliasGatsbyNodeFieldsArgs {
-  gatsbyNodeTypes: Array<IGatsbyNodeConfig>
+  gatsbyNodeTypes: Map<RemoteTypeName, IGatsbyNodeConfig>
   gatsbyFieldAliases: IGatsbyFieldAliases
   typeInfo: TypeInfo
   schema: GraphQLSchema
@@ -49,7 +53,7 @@ export function isNodeType(
     return false
   }
   if (isObjectType(type)) {
-    return args.gatsbyNodeTypes.some(t => t.remoteTypeName === type.name)
+    return args.gatsbyNodeTypes.has(type.name)
   }
   // Interface type
   const possibleTypes = args.schema.getPossibleTypes(type)
