@@ -1,7 +1,12 @@
-import { ISourcingConfig, ITypeNameTransform } from "../types"
+import { ITypeNameTransform, RemoteTypeName } from "../types"
+
+interface ITypeNameTransformArgs {
+  gatsbyTypePrefix: string
+  gatsbyNodeTypeNames: RemoteTypeName[]
+}
 
 export function createTypeNameTransform(
-  config: ISourcingConfig
+  config: ITypeNameTransformArgs
 ): ITypeNameTransform {
   const prefix = config.gatsbyTypePrefix
   const { remote2gatsby, gatsby2remote } = buildNameMaps(config)
@@ -14,14 +19,14 @@ export function createTypeNameTransform(
   }
 }
 
-function buildNameMaps(config: ISourcingConfig) {
+function buildNameMaps(config: ITypeNameTransformArgs) {
   // Fix collision: For every node type Gatsby creates a corresponding Connection Type
   //   But if remote source has it's own connection type - we get a naming conflict
   //   For example: Remote API has types MyProduct and MyProductConnection
   //   But Gatsby also creates its own MyProductConnection that is different from the remote type
   //   To resolve this we rename original connection type to MyProductConnection_Remote
   const prefix = config.gatsbyTypePrefix
-  const remoteConnectionTypes = Array.from(config.gatsbyNodeDefs.keys()).map(
+  const remoteConnectionTypes = config.gatsbyNodeTypeNames.map(
     remoteTypeName => `${remoteTypeName}Connection`
   )
   const remote2gatsby = new Map(

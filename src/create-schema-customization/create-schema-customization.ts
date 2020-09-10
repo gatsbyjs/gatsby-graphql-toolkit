@@ -23,7 +23,10 @@ export function createSchemaCustomizationContext(
 
   const {
     idTransform = createNodeIdTransform(),
-    typeNameTransform = createTypeNameTransform(config),
+    typeNameTransform = createTypeNameTransform({
+      gatsbyTypePrefix: config.gatsbyTypePrefix,
+      gatsbyNodeTypeNames: Array.from(config.gatsbyNodeDefs.keys()),
+    }),
   } = config
 
   return {
