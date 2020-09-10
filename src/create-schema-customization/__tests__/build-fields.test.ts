@@ -34,18 +34,18 @@ describe(`Collect fields from queries`, () => {
 
     expect(Object.keys(entryFields ?? {})).toHaveLength(4)
     expect(entryFields).toMatchObject({
-      "aliasedDisplayName": {
-        "type": "String!"
+      aliasedDisplayName: {
+        type: "String!",
       },
-      "aliasedEntries": {
-        "type": "[TestApiEntry]"
+      aliasedEntries: {
+        type: "[TestApiEntry]",
       },
-      "displayName": {
-        "type": "String!"
+      displayName: {
+        type: "String!",
       },
-      "entries": {
-        "type": "[TestApiEntry]"
-      }
+      entries: {
+        type: "[TestApiEntry]",
+      },
     })
   })
   it.todo(`correctly skips __typename field`)
