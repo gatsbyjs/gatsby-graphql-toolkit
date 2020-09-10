@@ -30,6 +30,7 @@ import { buildNodeReferenceFragmentMap } from "./analyze/build-node-reference-fr
 import { buildTypeUsagesMap } from "./analyze/build-type-usages-map"
 import { selectionSetIncludes } from "../utils/ast-compare"
 import { addRemoteTypeNameField } from "./ast-transformers/add-remote-typename-field"
+import * as GraphQLAST from "../utils/ast-nodes"
 
 interface ICompileNodeQueriesArgs {
   schema: GraphQLSchema
@@ -69,42 +70,57 @@ export function compileNodeQueries(
 
   const documents = new Map<RemoteTypeName, DocumentNode>()
   args.gatsbyNodeTypes.forEach(config => {
-    const def = compileDocument(context, {
-      remoteTypeName: config.remoteTypeName,
-      nodeFragments: nodeFragmentMap.get(config.remoteTypeName) ?? [],
-      nonNodeFragments: allNonNodeFragments,
-    })
+    const def = compileDocument(
+      context,
+      config.remoteTypeName,
+      nodeFragmentMap.get(config.remoteTypeName) ?? [],
+      allNonNodeFragments
+    )
     documents.set(config.remoteTypeName, def)
   })
 
   return documents
 }
 
-interface ICompileDocumentArgs {
-  remoteTypeName: RemoteTypeName
-  nodeFragments: FragmentDefinitionNode[]
-  nonNodeFragments: FragmentDefinitionNode[]
-}
-
 function compileDocument(
   context: ICompileQueriesContext,
-  { remoteTypeName, nodeFragments, nonNodeFragments }: ICompileDocumentArgs
-) {
+  remoteTypeName: RemoteTypeName,
+  nodeFragments: FragmentDefinitionNode[],
+  nonNodeFragments: FragmentDefinitionNode[]
+): DocumentNode {
   const queries = context.originalConfigQueries.get(remoteTypeName)
 
   if (!queries) {
     throw new Error(
-      `Could not find config queries for type "${remoteTypeName}"`
+      `Could not find "queries" config for type "${remoteTypeName}"`
     )
   }
 
+  // Remove redundant node fragments that contain the same fields as the id fragment
+  // (doesn't affect query results but makes queries more readable):
+  const prettifiedNodeFragments = removeIdFragmentDuplicates(
+    context,
+    nodeFragments,
+    getIdFragment(remoteTypeName, queries)
+  )
+
+  const typeInfo = new TypeInfo(context.schema)
+
+  let fragmentsDocument = GraphQLAST.document([
+    ...prettifiedNodeFragments,
+    ...nonNodeFragments,
+  ])
+
+  // Adding automatic __typename to custom fragments only
+  // (original query and ID fragment must not be altered)
+  fragmentsDocument = visit(
+    fragmentsDocument,
+    visitWithTypeInfo(typeInfo, addRemoteTypeNameField({ typeInfo }))
+  )
+
   const fullDocument: DocumentNode = {
     ...queries,
-    definitions: [
-      ...queries.definitions,
-      ...nodeFragments,
-      ...nonNodeFragments,
-    ],
+    definitions: [...queries.definitions, ...fragmentsDocument.definitions],
   }
 
   // Expected query variants:
@@ -114,17 +130,13 @@ function compileDocument(
   // We want to transform them to:
   //  1. { allUser { ...IDFragment ...UserFragment1 ...UserFragment2 }}
   //  2. { allNode(type: "User") { ...IDFragment ...UserFragment1 ...UserFragment2 }}
-  const typeInfo = new TypeInfo(context.schema)
 
   // TODO: optimize visitor keys
   let doc: DocumentNode = visit(
     fullDocument,
-    addNodeFragmentSpreadsAndTypename(nodeFragments)
+    addNodeFragmentSpreadsAndTypename(prettifiedNodeFragments)
   )
-  doc = visit(
-    doc,
-    visitWithTypeInfo(typeInfo, addRemoteTypeNameField({ typeInfo }))
-  )
+
   doc = visit(
     doc,
     visitWithTypeInfo(typeInfo, aliasGatsbyNodeFields({ ...context, typeInfo }))
@@ -133,56 +145,67 @@ function compileDocument(
     doc,
     visitWithTypeInfo(typeInfo, addVariableDefinitions({ typeInfo }))
   )
-  doc = visit(doc, removeUnusedFragments())
 
-  // Prettify:
-  return removeIdFragmentDuplicates(remoteTypeName, doc)
+  return visit(doc, removeUnusedFragments())
 }
 
-function removeIdFragmentDuplicates(
+function getIdFragment(
   remoteTypeName: RemoteTypeName,
   doc: DocumentNode
-): DocumentNode {
+): FragmentDefinitionNode {
   // Assume ID fragment is listed first
   const idFragment = doc.definitions.find(isFragment)
-
   if (!idFragment) {
     throw new Error(
       `Missing ID Fragment in type config for "${remoteTypeName}"`
     )
   }
-  const duplicates = doc.definitions
-    .filter(
-      (def): def is FragmentDefinitionNode =>
-        isFragment(def) &&
-        def !== idFragment &&
-        selectionSetIncludes(idFragment.selectionSet, def.selectionSet)
-    )
-    .map(def => def.name.value)
+  return idFragment
+}
 
-  const duplicatesSet = new Set<string>(duplicates)
+function removeIdFragmentDuplicates(
+  context: ICompileQueriesContext,
+  fragments: FragmentDefinitionNode[],
+  idFragment: FragmentDefinitionNode
+): FragmentDefinitionNode[] {
+  // The caveat is that a custom fragment may already have aliases but ID fragment hasn't:
+  //
+  // fragment Foo on Foo {
+  //   remoteTypeName: __typename
+  // }
+  //
+  // ID fragment:
+  // fragment _FooId_ on Foo {
+  //   __typename
+  //   id
+  // }
+  // So before comparing selections we must "normalize" both to the form they
+  // will be in the actual query
+  const typeInfo = new TypeInfo(context.schema)
+  let fragmentsWithAliases = GraphQLAST.document(fragments)
 
-  if (duplicatesSet.size === 0) {
-    return doc
-  }
-
-  return visit(doc, {
-    FragmentSpread: node => {
-      if (duplicatesSet.has(node.name.value)) {
-        // Delete this node
-        return null
-      }
-      return undefined
-    },
-    FragmentDefinition: node => {
-      if (duplicatesSet.has(node.name.value)) {
-        // Delete this node
-        return null
-      }
-      // Stop visiting this node
-      return false
-    },
-  })
+  const idFragmentWithAliases = visit(
+    idFragment,
+    visitWithTypeInfo(typeInfo, aliasGatsbyNodeFields({ ...context, typeInfo }))
+  )
+  fragmentsWithAliases = visit(
+    fragmentsWithAliases,
+    visitWithTypeInfo(typeInfo, aliasGatsbyNodeFields({ ...context, typeInfo }))
+  )
+  const deduped = new Set(
+    fragmentsWithAliases.definitions
+      .filter(
+        (def): def is FragmentDefinitionNode =>
+          isFragment(def) &&
+          def.name.value !== idFragment.name.value &&
+          !selectionSetIncludes(
+            idFragmentWithAliases.selectionSet,
+            def.selectionSet
+          )
+      )
+      .map(fragment => fragment.name.value)
+  )
+  return fragments.filter(f => deduped.has(f.name.value))
 }
 
 function createCompilationContext(

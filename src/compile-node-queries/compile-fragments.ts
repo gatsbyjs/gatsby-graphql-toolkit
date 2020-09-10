@@ -46,8 +46,8 @@ import { isFragment } from "../utils/ast-predicates"
  * fragment Post on Post {
  *   title
  *   author {
- *     remoteTypeName: __typename
- *     remoteNodeId: id
+ *     __typename
+ *     id
  *   }
  * }
  * fragment User__recentPosts on Post {
@@ -58,8 +58,8 @@ import { isFragment } from "../utils/ast-predicates"
  * fragment User on User {
  *   lastName
  *   recentPosts {
- *     remoteTypeName: __typename
- *     remoteNodeId: id
+ *     __typename
+ *     id
  *   }
  * }
  * fragment Post__author on User {

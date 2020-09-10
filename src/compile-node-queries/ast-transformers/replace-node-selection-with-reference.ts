@@ -32,8 +32,8 @@ interface ITransformArgs {
  * Is transformed to:
  * {
  *   author {
- *     remoteTypeName: __typename
- *     remoteId: id
+ *     __typename
+ *     id
  *   }
  * }
  */

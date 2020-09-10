@@ -56,7 +56,13 @@ it(`should remove redundant fragments`, async () => {
             id
           }
         }
-      }`
+        otherBar: bar {
+          remoteTypeName: __typename
+          sys {
+            id
+          }
+        }
+      }`,
     ],
   })
 
@@ -71,13 +77,19 @@ it(`should remove redundant fragments`, async () => {
     fragment BarId on Bar {
       remoteTypeName: __typename
       sys {
-        remoteTypeName: __typename
         id
       }
     }
 
     # This fragment is removed from the result:
     # fragment Foo__bar on Bar {
+    #   sys {
+    #     remoteTypeName: __typename
+    #     id
+    #   }
+    # }
+    # fragment Foo__otherBar on Bar {
+    #   remoteTypeName: __typename
     #   sys {
     #     remoteTypeName: __typename
     #     id
