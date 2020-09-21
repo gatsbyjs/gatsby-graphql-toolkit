@@ -3,163 +3,283 @@ import { dedent, printFragment } from "../../__tests__/test-utils"
 import { IGatsbyNodeConfig } from "../../types"
 import { compileGatsbyFragments } from "../compile-gatsby-fragments"
 
-describe(`Happy path`, () => {
-  const schema = buildSchema(`
-    enum FooBarEnum {
-      FOO
-      BAR
-    }
-    interface Node {
-      testId: ID
-      createdAt: Int
-      updatedAt: Int
-    }
-    interface WithFoo {
-      testId: ID
-      foo: Foo
-    }
-    interface WithNode {
-      node: Node
-    }
-    type Foo implements Node {
-      testId: ID
-      string: String
-      int: Int
-      float: Float
-      enum: FooBarEnum
-      withWrappers: [String!]!
-      createdAt: Int
-      updatedAt: Int
-    }
-    type Bar implements Node & WithFoo & WithNode {
-      testId: ID
-      foo: Foo
-      node: Node
-      nodeList: [Node!]!
-      bar: String
-      createdAt: Int
-      updatedAt: Int
-    }
-    type GatsbyFields {
-      id: ID
-      internal: String
-      parent: String
-      children: String 
-    }
-    type WithGatsbyFields {
-      id: ID
-      internal: String
-      parent: String
-      children: String
-      fields: GatsbyFields
-    }
-    type ComplexId {
-      kind: String
-      uid: String
-    }
-    type WithComplexId1 {
-      id: ComplexId
-      withComplexId2: WithComplexId2
-      foo: String
-    }
-    type WithComplexId2 {
-      testId: String
-      id: ComplexId
-      withComplexId1: WithComplexId1
-      foo: String
-    }
-    input Page {
-      pageNumber: Int
-      perPage: Int
-    }
-    type Query {
-      allFoo(limit: Int = 10 offset: Int = 0): [Foo]
-      allBar(page: Page): [Bar]
-      allGatsbyFields: [GatsbyFields]
-      allWithGatsbyFields: [WithGatsbyFields]
-      allWithComplexId1: [WithComplexId1]
-      allWithComplexId2: [WithComplexId2]
+const schema = buildSchema(`
+  enum FooBarEnum {
+    FOO
+    BAR
+  }
+  interface Node {
+    testId: ID
+    createdAt: Int
+    updatedAt: Int
+  }
+  interface WithFoo {
+    testId: ID
+    foo: Foo
+  }
+  type Foo implements Node {
+    testId: ID
+    string: String
+    int: Int
+    float: Float
+    enum: FooBarEnum
+    withWrappers: [String!]!
+    createdAt: Int
+    updatedAt: Int
+    bars(page: Page): BarConnection
+    stringWithArg(foo: String): String
+  }
+  type Bar implements Node & WithFoo {
+    testId: ID
+    foo: Foo
+    node: Node
+    nodeList: [Node!]!
+    bar: String
+    createdAt: Int
+    updatedAt: Int
+  }
+  type BarConnection {
+    nodes: [Bar]
+  }
+  input Page {
+    pageNumber: Int
+    perPage: Int
+  }
+  type Query {
+    allFoo(limit: Int = 10 offset: Int = 0): [Foo]
+    allBar(page: Page): BarConnection
+  }
+`)
+
+const nodeTypes: {
+  Foo: IGatsbyNodeConfig
+  Bar: IGatsbyNodeConfig
+} = {
+  Foo: {
+    remoteTypeName: `Foo`,
+    queries: `
+      query LIST_Foo { allFoo { ...FooId } }
+      fragment FooId on Foo { testId }
+    `,
+  },
+  Bar: {
+    remoteTypeName: `Bar`,
+    queries: `
+      query LIST_Bar { allBar { ...BarId } }
+      fragment BarId on Bar { testId }
+    `,
+  },
+}
+
+it(`works without custom fragments`, () => {
+  const fragmentDoc = compileGatsbyFragments({
+    schema,
+    gatsbyTypePrefix: `Test!`,
+    gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
+    customFragments: [],
+  })
+
+  expect(fragmentDoc.definitions.length).toEqual(0)
+})
+
+it(`prefixes type names in fragment type condition`, () => {
+  const fragments = compileGatsbyFragments({
+    schema,
+    gatsbyNodeTypes: [nodeTypes.Foo],
+    gatsbyTypePrefix: `Test`,
+    customFragments: [`fragment Foo on Foo { string }`],
+  })
+
+  expect(fragments.definitions.length).toEqual(1)
+  expect(printFragment(fragments, `Foo`)).toEqual(dedent`
+    fragment Foo on TestFoo {
+      string
     }
   `)
+})
 
-  const nodeTypes: {
-    Foo: IGatsbyNodeConfig
-    Bar: IGatsbyNodeConfig
-    WithGatsbyFields: IGatsbyNodeConfig
-    GatsbyFields: IGatsbyNodeConfig
-    WithComplexId1: IGatsbyNodeConfig
-    WithComplexId2: IGatsbyNodeConfig
-  } = {
-    Foo: {
-      remoteTypeName: `Foo`,
-      queries: `
-        query LIST_Foo { allFoo { ...FooId } }
-        fragment FooId on Foo { testId }
+it(`prefixes type names in inline fragment type condition`, () => {
+  const fragments = compileGatsbyFragments({
+    schema,
+    gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
+    gatsbyTypePrefix: `Test`,
+    customFragments: [
+      `fragment Foo on Node {
+        ... on Foo { string }
+        ... on Bar {
+          bar
+          foo {
+            ... on Foo { enum }
+          }
+        }
+      }
       `,
-    },
-    Bar: {
-      remoteTypeName: `Bar`,
-      queries: `
-        query LIST_Bar { allBar { ...BarId } }
-        fragment BarId on Bar { testId }
-      `,
-    },
-    GatsbyFields: {
-      remoteTypeName: `GatsbyFields`,
-      queries: `
-        query LIST_GatsbyFields { allGatsbyFields { ...GatsbyFieldsId } }
-        fragment GatsbyFieldsId on GatsbyFields { id }
-      `,
-    },
-    WithGatsbyFields: {
-      remoteTypeName: `WithGatsbyFields`,
-      queries: `
-        query LIST_WithGatsbyFields { allWithGatsbyFields { ...WithGatsbyFieldsId } }
-        fragment WithGatsbyFieldsId on WithGatsbyFields { __typename id }
-      `,
-    },
-    WithComplexId1: {
-      remoteTypeName: `WithComplexId1`,
-      queries: `
-        query LIST_WithComplexId1 { allWithComplexId1 { ...WithComplexId1_Id } }
-        fragment WithComplexId1_Id on WithComplexId1 { id { kind uid } }
-      `,
-    },
-    WithComplexId2: {
-      remoteTypeName: `WithComplexId2`,
-      queries: `
-        query LIST_WithComplexId2 { allWithComplexId2 { ...WithComplexId2_Id } }
-        fragment WithComplexId2_Id on WithComplexId2 { testId id { uid } }
-      `,
-    },
-  }
-
-  it(`works without custom fragments`, () => {
-    const fragmentDoc = compileGatsbyFragments({
-      schema,
-      gatsbyTypePrefix: `Test!`,
-      gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
-      customFragments: [],
-    })
-
-    expect(fragmentDoc.definitions.length).toEqual(0)
+    ],
   })
 
-  it(`works with a single custom fragment`, () => {
-    const fragments = compileGatsbyFragments({
-      schema,
-      gatsbyNodeTypes: [nodeTypes.Foo],
-      gatsbyTypePrefix: `Test`,
-      customFragments: [
-        `fragment Foo on Foo { string }`
-      ],
-    })
+  expect(fragments.definitions.length).toEqual(1)
+  expect(printFragment(fragments, `Foo`)).toEqual(dedent`
+    fragment Foo on TestNode {
+      ... on TestFoo { string }
+      ... on TestBar {
+        bar
+        foo {
+          ... on TestFoo { enum }
+        }
+      }
+    }
+  `)
+})
 
-    expect(fragments.definitions.length).toEqual(1)
-    expect(printFragment(fragments, `Foo`)).toEqual(dedent`
-      fragment Foo on TestFoo {
+it(`prefixes connection type names`, () => {
+  const fragments = compileGatsbyFragments({
+    schema,
+    gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
+    gatsbyTypePrefix: `Test`,
+    customFragments: [
+      `fragment Foo on Foo { bars { ... on BarConnection { string } } }`,
+      `fragment Bar on BarConnection { nodes { string } }`,
+    ],
+  })
+
+  expect(fragments.definitions.length).toEqual(2)
+  expect(printFragment(fragments, `Bar`)).toEqual(dedent`
+    fragment Bar on TestBarConnection_Remote {
+      nodes { string }
+    }
+  `)
+  expect(printFragment(fragments, `Foo`)).toEqual(dedent`
+    fragment Foo on TestFoo {
+      bars { ... on TestBarConnection_Remote { string } }
+    }
+  `)
+})
+
+it(`uses aliases as field names`, () => {
+  const fragments = compileGatsbyFragments({
+    schema,
+    gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],
+    gatsbyTypePrefix: `Test`,
+    customFragments: [
+      `
+        fragment Foo on Foo {
+          myString: string
+          myBars: bars {
+            myNodes: nodes {
+              myBarString: bar
+            }
+          }
+        }
+        fragment Bar on Bar {
+          myNode: node {
+            ... on Foo {
+              myString: string
+            }
+            ... on Bar {
+              myBar: bar
+            }
+          }
+        }
+      `,
+    ],
+  })
+
+  expect(fragments.definitions.length).toEqual(2)
+  expect(printFragment(fragments, `Foo`)).toEqual(dedent`
+    fragment Foo on TestFoo {
+      myString
+      myBars {
+        myNodes {
+          myBarString
+        }
+      }
+    }
+  `)
+  expect(printFragment(fragments, `Bar`)).toEqual(dedent`
+    fragment Bar on TestBar {
+      myNode {
+        ... on TestFoo { myString }
+        ... on TestBar { myBar }
+      }
+    }
+  `)
+})
+
+it(`strips field arguments`, () => {
+  const fragments = compileGatsbyFragments({
+    schema,
+    gatsbyNodeTypes: [nodeTypes.Foo],
+    gatsbyTypePrefix: `Test`,
+    customFragments: [
+      `
+      fragment Foo on Foo {
+        bars(page: { pageNumber: 2 }) {
+          string
+        }
+      }
+    `,
+    ],
+  })
+
+  expect(fragments.definitions.length).toEqual(1)
+  expect(printFragment(fragments, `Foo`)).toEqual(dedent`
+    fragment Foo on TestFoo {
+      bars { string }
+    }
+  `)
+})
+
+it(`strips non-standard directives`, () => {
+  const fragments = compileGatsbyFragments({
+    schema,
+    gatsbyNodeTypes: [nodeTypes.Foo],
+    gatsbyTypePrefix: `Test`,
+    customFragments: [
+      `
+      fragment Foo on Foo @myFragmentDirective {
+        bars @myFieldDirective {
+          string
+        }
+      }
+    `,
+    ],
+  })
+
+  expect(fragments.definitions.length).toEqual(1)
+  expect(printFragment(fragments, `Foo`)).toEqual(dedent`
+    fragment Foo on TestFoo {
+      bars {
         string
       }
-    `)
-  })
+    }
+  `)
 })
+
+it(`preserves standard directives`, () => {
+  const fragments = compileGatsbyFragments({
+    schema,
+    gatsbyNodeTypes: [nodeTypes.Foo],
+    gatsbyTypePrefix: `Test`,
+    customFragments: [
+      `
+      fragment Foo on Foo @include(if: false) {
+        bars @skip(if: false) {
+          string
+        }
+      }
+    `,
+    ],
+  })
+
+  expect(fragments.definitions.length).toEqual(1)
+  expect(printFragment(fragments, `Foo`)).toEqual(dedent`
+    fragment Foo on TestFoo @include(if: false) {
+      bars @skip(if: false) {
+        string
+      }
+    }
+  `)
+})
+
+it.todo(`preserves variables within fragments?`)
+it.todo(`preserves pagination arguments?`)
