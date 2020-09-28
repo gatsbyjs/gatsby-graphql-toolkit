@@ -79,9 +79,14 @@ export async function fetchNodeById(
     }
     throw new Error(message)
   }
-  const node = getFirstValueByPath(result.data, nodeFieldPath)
+  const nodeOrArray = getFirstValueByPath(result.data, nodeFieldPath)
 
-  if (typeof node !== `object` || node === null) {
+  const node =
+    Array.isArray(nodeOrArray) && nodeOrArray.length === 1
+      ? nodeOrArray[0]
+      : nodeOrArray
+
+  if (typeof node !== `object` || Array.isArray(node) || node === null) {
     return undefined
   }
 
