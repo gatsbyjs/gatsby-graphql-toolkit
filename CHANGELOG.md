@@ -9,6 +9,7 @@ Gatsby fragments. See [README.md](./README.md#compilegatsbyfragments) for detail
 
 - be smarter when adding a `__typename` field (see [#11](https://github.com/gatsbyjs/gatsby-graphql-toolkit/issues/11))
 - support variables within input objects (see [#13](https://github.com/gatsbyjs/gatsby-graphql-toolkit/issues/13))
+- support lists with a single value in `NODE_` queries (see [#14](https://github.com/gatsbyjs/gatsby-graphql-toolkit/issues/14)) 
 
 # v0.5.0
 
