@@ -5,7 +5,6 @@ import {
   FieldNode,
   visit,
   BREAK,
-  VariableNode,
 } from "graphql"
 import * as GraphQLAST from "../../utils/ast-nodes"
 import { IPaginationAdapter } from "../../config/pagination-adapters"
@@ -32,8 +31,12 @@ export function findPaginatedFieldPath(
   const expectedVars = paginationAdapter.expectedVariableNames
 
   if (!expectedVars.length) {
-    // FIXME: use first fragment spread instead of __typename
-    // TODO: consider to always use this instead of isPaginatedField
+    // FIXME: LIST_ queries without variables do not work for Relay connections:
+    //   { myConnection { edges { node { __typename ...IdFragment } } }
+    //   We want to return path to `myConnection` here but it will detect `node` field.
+    //   So maybe allow pagination adapter to decide? i.e. Relay could look into
+    //   type name and return first field with `MyConnection` type
+    // TODO: use first fragment spread instead of __typename
     const hasTypeNameField = (field: FieldNode) =>
       field.selectionSet
         ? field.selectionSet.selections.some(
@@ -44,11 +47,14 @@ export function findPaginatedFieldPath(
   }
 
   const isPaginatedField = (node: FieldNode) => {
-    const variables = (node.arguments ?? [])
-      .map(arg => arg.value)
-      .filter((value): value is VariableNode => value.kind === "Variable")
-      .map(value => value.name.value)
-
+    const variables: Array<string> = []
+    node.arguments?.forEach(arg => {
+      visit(arg, {
+        Variable: variableNode => {
+          variables.push(variableNode.name.value)
+        },
+      })
+    })
     return (
       variables.length > 0 &&
       expectedVars.every(name => variables.includes(name))
@@ -66,7 +72,17 @@ export function findNodeFieldPath(
 ): string[] {
   // For now simply assuming the first field with a variable
   const hasVariableArgument = (node: FieldNode) =>
-    (node.arguments ?? []).some(arg => arg.value.kind === "Variable")
+    (node.arguments ?? []).some(arg => {
+      let hasVariable = false
+      visit(arg, {
+        Variable: () => {
+          hasVariable = true
+          return BREAK
+        },
+      })
+      return hasVariable
+    })
+
   return findFieldPath(document, operationName, hasVariableArgument)
 }
 

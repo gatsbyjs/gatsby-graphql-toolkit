@@ -68,10 +68,11 @@ export function addVariableDefinitions({
     FragmentSpread: node => {
       currentDefinition.usedFragments.add(node.name.value)
     },
-    Argument: node => {
+    Variable: node => {
       const inputType = typeInfo.getInputType()
-      if (node.value.kind === "Variable" && inputType) {
-        currentDefinition.variables.set(node.value.name.value, inputType)
+      // FIXME: throw if no inputType found?
+      if (inputType) {
+        currentDefinition.variables.set(node.name.value, inputType)
       }
     },
   }

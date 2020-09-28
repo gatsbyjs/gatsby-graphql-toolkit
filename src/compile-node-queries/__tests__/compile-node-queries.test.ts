@@ -913,6 +913,39 @@ describe(`Happy path`, () => {
       `)
     })
 
+    it(`supports variables within complex inputs`, () => {
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [
+          {
+            remoteTypeName: `Bar`,
+            queries: `
+              query LIST_Bar { allBar(page: { pageNumber: $pageNumber }) { ...BarId } }
+              fragment BarId on Bar { testId }
+            `,
+          },
+        ],
+        customFragments: [`fragment Bar on Bar { createdAt }`],
+      })
+
+      expect(queries.size).toEqual(1)
+      expect(printQuery(queries, `Bar`)).toEqual(dedent`
+        query LIST_Bar($pageNumber: Int) {
+          allBar(page: { pageNumber: $pageNumber }) {
+            remoteTypeName: __typename
+            ...BarId
+            ...Bar
+          }
+        }
+        fragment BarId on Bar {
+          testId
+        }
+        fragment Bar on Bar {
+          createdAt
+        }
+      `)
+    })
+
     it.todo(`Supports deeply nested variables`)
     it.todo(`Supports variables within fragments`)
     it.todo(`Supports deeply nested variables within fragments`)
