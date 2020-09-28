@@ -5,9 +5,10 @@
 Added new experimental tool `compileGatsbyFragments`. Use it to compile custom source fragments to
 Gatsby fragments. See [README.md](./README.md#compilegatsbyfragments) for details.
 
-## Fix: be smarter when adding a `__typename` field
+## Fixes
 
-Fixes [#11](https://github.com/gatsbyjs/gatsby-graphql-toolkit/issues/11)
+- be smarter when adding a `__typename` field (see [#11](https://github.com/gatsbyjs/gatsby-graphql-toolkit/issues/11))
+- support variables within input objects (see [#13](https://github.com/gatsbyjs/gatsby-graphql-toolkit/issues/13))
 
 # v0.5.0
 
