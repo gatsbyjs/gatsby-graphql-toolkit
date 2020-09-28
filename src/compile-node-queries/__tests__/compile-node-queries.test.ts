@@ -40,6 +40,17 @@ describe(`Happy path`, () => {
       createdAt: Int
       updatedAt: Int
     }
+    type Baz {
+      id: ID
+      value: String
+    }
+    type BazEdge {
+      cursor: String
+      nodes: [Baz]
+    }
+    type BazConnection {
+      edges: [BazEdge]
+    }
     type GatsbyFields {
       id: ID
       internal: String
@@ -79,12 +90,14 @@ describe(`Happy path`, () => {
       allWithGatsbyFields: [WithGatsbyFields]
       allWithComplexId1: [WithComplexId1]
       allWithComplexId2: [WithComplexId2]
+      allBaz(first: Int, after: String): BazConnection
     }
   `)
 
   const nodeTypes: {
     Foo: IGatsbyNodeConfig
     Bar: IGatsbyNodeConfig
+    Baz: IGatsbyNodeConfig
     WithGatsbyFields: IGatsbyNodeConfig
     GatsbyFields: IGatsbyNodeConfig
     WithComplexId1: IGatsbyNodeConfig
@@ -102,6 +115,21 @@ describe(`Happy path`, () => {
       queries: `
         query LIST_Bar { allBar { ...BarId } }
         fragment BarId on Bar { testId }
+      `,
+    },
+    Baz: {
+      remoteTypeName: `Baz`,
+      queries: `
+        query LIST_Baz {
+          allBaz {
+            edges {
+              node {
+                ...BazId
+              }
+            }
+          }
+        }
+        fragment BazId on Baz { testId }
       `,
     },
     GatsbyFields: {
@@ -150,6 +178,29 @@ describe(`Happy path`, () => {
         }
       }
       fragment FooId on Foo { testId }
+    `)
+  })
+
+  it(`adds __typename in the top-level node field within connection`, () => {
+    const queries = compileNodeQueries({
+      schema,
+      gatsbyNodeTypes: [nodeTypes.Baz],
+      customFragments: [],
+    })
+
+    expect(queries.size).toEqual(1)
+    expect(printQuery(queries, `Baz`)).toEqual(dedent`
+      query LIST_Baz {
+        allBaz {
+          edges {
+            node {
+              remoteTypeName: __typename
+              ...BazId
+            }
+          }
+        }
+      }
+      fragment BazId on Baz { testId }
     `)
   })
 
