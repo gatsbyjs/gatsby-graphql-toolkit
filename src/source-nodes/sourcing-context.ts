@@ -13,7 +13,10 @@ export function createSourcingContext(
 
   const {
     idTransform = createNodeIdTransform(),
-    typeNameTransform = createTypeNameTransform(config),
+    typeNameTransform = createTypeNameTransform({
+      gatsbyTypePrefix: config.gatsbyTypePrefix,
+      gatsbyNodeTypeNames: Array.from(config.gatsbyNodeDefs.keys()),
+    }),
     paginationAdapters = PaginationAdapters,
   } = config
 
