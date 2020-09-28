@@ -1,3 +1,10 @@
+# Unreleased
+
+## Feat: compile gatsby fragments
+
+Added new experimental tool `compileGatsbyFragments`. Use it to compile custom source fragments to
+Gatsby fragments. See [README.md](./README.md#compilegatsbyfragments) for details.
+
 # v0.5.0
 
 ## Feat: nested fragment spreads

@@ -52,6 +52,7 @@ See this PR for progress: https://github.com/gatsbyjs/gatsby/pull/25468
     - [generateDefaultFragments](#generatedefaultfragments)
     - [readOrGenerateDefaultFragments](#readorgeneratedefaultfragments)
     - [compileNodeQueries](#compilenodequeries)
+    - [compileGatsbyFragments](#compilegatsbyfragments)
   - [Schema customization tools](#schema-customization-tools)
     - [createSchemaCustomization](#createschemacustomization)
   - [Source nodes tools](#source-nodes-tools)
@@ -1046,6 +1047,57 @@ function compileNodeQueries(
 ): Map<RemoteTypeName, DocumentNode>
 ```
 
+#### compileGatsbyFragments
+
+Takes a list of custom source fragments and transforms them to
+a list of gatsby fragments.
+
+E.g.
+
+```graphql
+fragment PostAuthor on Author {
+  id
+  name
+  allPosts {
+    excerpt: description(truncateAt: 200)
+  }
+}
+```
+
+is compiled to the following Gatsby fragment:
+
+```graphql
+fragment PostAuthor on MyAuthor {
+  id
+  name
+  allPosts {
+    excerpt
+  }
+}
+```
+
+This is handy if you want to [re-use the same fragments for your components][18] in both - Gatsby build and
+client-side GraphQL queries.
+
+Related types:
+
+```ts
+interface ICompileGatsbyFragmentsArgs {
+  schema: GraphQLSchema
+  gatsbyNodeTypes: IGatsbyNodeConfig[]
+  gatsbyTypePrefix: string
+  gatsbyFieldAliases?: IGatsbyFieldAliases
+  typeNameTransform?: ITypeNameTransform
+  customFragments:
+    | Array<GraphQLSource | string>
+    | Map<RemoteTypeName, GraphQLSource | string>
+}
+
+export function compileGatsbyFragments(
+  args: ICompileGatsbyFragmentsArgs
+): DocumentNode
+```
+
 ### Schema customization tools
 
 #### createSchemaCustomization
@@ -1148,3 +1200,4 @@ interface ISourceChanges {
 [15]: https://graphql.org/graphql-js/type/#graphqlschema
 [16]: https://graphql.org/graphql-js/utilities/#buildclientschema
 [17]: https://graphql.org/learn/queries/#fragments
+[18]: https://manifold.co/blog/graphql-fragments-are-the-best-match-for-ui-components-72b8f61c20fe

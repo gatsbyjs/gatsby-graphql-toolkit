@@ -25,7 +25,7 @@ import * as GraphQLAST from "../utils/ast-nodes"
 import { createTypeNameTransform } from "../config/type-name-transform"
 import { renameNode } from "../utils/ast-transform"
 
-interface ICompileNodeQueriesArgs {
+interface ICompileGatsbyFragmentsArgs {
   schema: GraphQLSchema
   gatsbyNodeTypes: IGatsbyNodeConfig[]
   gatsbyTypePrefix: string
@@ -37,11 +37,30 @@ interface ICompileNodeQueriesArgs {
 }
 
 /**
- * Combines `queries` from node types config with any user-defined
- * fragments and produces final queries used for node sourcing.
+ * Takes a list of custom source fragments and transforms them to
+ * a list of gatsby fragments.
+ *
+ * E.g.
+ * fragment PostAuthor on Author {
+ *   id
+ *   name
+ *   allPosts {
+ *     excerpt: description(truncateAt: 200)
+ *   }
+ * }
+ *
+ * is compiled to the following Gatsby fragment:
+ *
+ * fragment PostAuthor on MyAuthor {
+ *   id
+ *   name
+ *   allPosts {
+ *     excerpt
+ *   }
+ * }
  */
 export function compileGatsbyFragments(
-  args: ICompileNodeQueriesArgs
+  args: ICompileGatsbyFragmentsArgs
 ): DocumentNode {
   const allFragmentDocs: DocumentNode[] = []
   args.customFragments.forEach(fragmentString => {
@@ -62,7 +81,7 @@ export function compileGatsbyFragments(
 }
 
 function ensureGatsbyFieldAliases(
-  args: ICompileNodeQueriesArgs,
+  args: ICompileGatsbyFragmentsArgs,
   doc: DocumentNode
 ): DocumentNode {
   const typeInfo = new TypeInfo(args.schema)
@@ -130,7 +149,7 @@ function useFieldAliases(doc: DocumentNode): DocumentNode {
 }
 
 function prefixTypeConditions(
-  args: ICompileNodeQueriesArgs,
+  args: ICompileGatsbyFragmentsArgs,
   doc: DocumentNode
 ): DocumentNode {
   const typeNameTransform =
