@@ -43,6 +43,7 @@ describe(`Happy path`, () => {
     type Baz {
       id: ID
       value: String
+      node: Node
     }
     type BazEdge {
       cursor: String
@@ -546,6 +547,63 @@ describe(`Happy path`, () => {
         }
       `)
     })
+
+    it(`supports node referencing in fields of a mixed interface type`, () => {
+      const queries = compileNodeQueries({
+        schema,
+        gatsbyNodeTypes: [nodeTypes.Bar, nodeTypes.Baz],
+        customFragments: [
+          `
+          fragment Baz on Baz {
+            node {
+              testId
+              ... on Bar {
+                bar
+              }
+              ...NonNodeFragment
+            }
+          }
+          fragment NonNodeFragment on Foo {
+            foo
+          }
+        `,
+        ],
+      })
+      expect(printQuery(queries, `Baz`)).toEqual(dedent`
+        query LIST_Baz {
+          allBaz {
+            edges {
+              node {
+                remoteTypeName: __typename
+                ...BazId
+                ...Baz
+              }
+            }
+          }
+        }
+        
+        fragment BazId on Baz {
+          testId
+        }
+        
+        fragment Baz on Baz {
+          node {
+            remoteTypeName: __typename
+            ... on Foo {
+              testId
+              ...NonNodeFragment
+            }
+            ... on Bar {
+              testId
+            }
+          }
+        }
+
+        fragment NonNodeFragment on Foo {
+          foo
+        }
+      `)
+    })
   })
 
   describe(`Field aliasing`, () => {
@@ -711,7 +769,7 @@ describe(`Happy path`, () => {
   })
 
   describe(`Abstract types`, () => {
-    it(`includes fragments on interface type to source queries of all implementing nodes`, () => {
+    it(`includes fragments on interface type in source queries of all implementing node types`, () => {
       const queries = compileNodeQueries({
         schema,
         gatsbyNodeTypes: [nodeTypes.Foo, nodeTypes.Bar],

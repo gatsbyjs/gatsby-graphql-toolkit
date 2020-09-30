@@ -1,14 +1,12 @@
 import {
   DocumentNode,
   FragmentDefinitionNode,
-  GraphQLSchema,
   isObjectType,
   TypeInfo,
   visit,
   visitWithTypeInfo,
 } from "graphql"
 import {
-  FragmentMap,
   ICompileQueriesContext,
   IGatsbyNodeConfig,
   RemoteTypeName,
@@ -103,32 +101,25 @@ function compileNormalizedNodeFragments(
       )
     }
   }
-  return addNodeReferences(
-    context.schema,
-    context.nodeReferenceFragmentMap,
-    result
-  )
+  return addNodeReferences(context, result)
 }
 
 export function compileNonNodeFragments(context: ICompileQueriesContext) {
   const nonNodeFragments = findAllNonNodeFragments(context)
-  return addNodeReferences(
-    context.schema,
-    context.nodeReferenceFragmentMap,
-    nonNodeFragments
-  )
+  return addNodeReferences(context, nonNodeFragments)
 }
 
 function addNodeReferences(
-  schema: GraphQLSchema,
-  nodeReferenceFragmentMap: FragmentMap,
+  context: ICompileQueriesContext,
   fragments: FragmentDefinitionNode[]
 ): FragmentDefinitionNode[] {
+  const { schema, originalCustomFragments, nodeReferenceFragmentMap } = context
   const typeInfo = new TypeInfo(schema)
 
   const visitContext = {
     schema,
     nodeReferenceFragmentMap,
+    originalCustomFragments,
     typeInfo,
   }
   let doc: DocumentNode = visit(

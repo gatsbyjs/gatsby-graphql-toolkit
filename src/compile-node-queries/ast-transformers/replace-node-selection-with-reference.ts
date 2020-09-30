@@ -8,6 +8,8 @@ import {
   GraphQLInterfaceType,
   FieldNode,
   SelectionNode,
+  GraphQLObjectType,
+  FragmentDefinitionNode,
 } from "graphql"
 import { FragmentMap } from "../../types"
 import * as GraphQLAST from "../../utils/ast-nodes"
@@ -16,6 +18,7 @@ import { isTypeNameField } from "../../utils/ast-predicates"
 interface ITransformArgs {
   schema: GraphQLSchema
   typeInfo: TypeInfo
+  originalCustomFragments: FragmentDefinitionNode[]
   nodeReferenceFragmentMap: FragmentMap
 }
 
@@ -72,19 +75,24 @@ function transformInterfaceField(
     return
   }
   // Replace with inline fragment for each implementation
-  const selections: SelectionNode[] = possibleTypes.map(type => {
-    const nodeReferenceFragment = args.nodeReferenceFragmentMap.get(type.name)
-    const inlineFragmentSelections = nodeReferenceFragment
-      ? nodeReferenceFragment.selectionSet.selections
-      : node.selectionSet?.selections ?? []
+  const selections: SelectionNode[] = possibleTypes
+    .map(type => {
+      const nodeReferenceFragment = args.nodeReferenceFragmentMap.get(type.name)
+      const inlineFragmentSelections = nodeReferenceFragment
+        ? nodeReferenceFragment.selectionSet.selections
+        : filterTypeSelections(args, node.selectionSet?.selections, type)
 
-    // Filter out __typename field from inline fragments because we add it to the field itself below
-    //   (just a prettify thing)
-    return GraphQLAST.inlineFragment(
-      type.name,
-      inlineFragmentSelections.filter(selection => !isTypeNameField(selection))
-    )
-  })
+      // Filter out __typename field from inline fragments because we add it to the field itself below
+      //   (just a prettify thing)
+      return GraphQLAST.inlineFragment(
+        type.name,
+        inlineFragmentSelections.filter(
+          selection => !isTypeNameField(selection)
+        )
+      )
+    })
+    .filter(inlineFragment => inlineFragment.selectionSet.selections.length > 0)
+
   return {
     ...node,
     selectionSet: {
@@ -92,4 +100,31 @@ function transformInterfaceField(
       selections: [GraphQLAST.field(`__typename`), ...selections],
     },
   }
+}
+
+function filterTypeSelections(
+  args: ITransformArgs,
+  selections: ReadonlyArray<SelectionNode> = [],
+  type: GraphQLObjectType
+): Array<SelectionNode> {
+  // @ts-ignore
+  return selections.filter(selection => {
+    if (selection.kind === `Field`) {
+      // Every field selected on interface type already exists
+      // on implementing object type
+      return true
+    }
+    if (selection.kind === `InlineFragment`) {
+      const typeName = selection.typeCondition?.name.value
+      return !typeName || typeName === type.name
+    }
+    if (selection.kind === `FragmentSpread`) {
+      const fragmentName = selection.name.value
+      const fragment = args.originalCustomFragments.find(
+        def => def.name.value === fragmentName
+      )
+      return fragment && fragment.typeCondition.name.value === type.name
+    }
+    return false
+  })
 }
