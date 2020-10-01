@@ -1,5 +1,5 @@
 import * as path from "path"
-import * as fs from "fs"
+import * as fs from "fs-extra"
 import { Source } from "graphql"
 import { GraphQLSource, RemoteTypeName } from "../types"
 import {
@@ -18,6 +18,7 @@ export async function readOrGenerateDefaultFragments(
   const defaultFragments = generateDefaultFragments(config)
   const result = new Map<RemoteTypeName, GraphQLSource>()
 
+  await fs.ensureDir(fragmentsDir)
   for (const [remoteTypeName, fragment] of defaultFragments) {
     const fileName = path.join(fragmentsDir, `${remoteTypeName}.graphql`)
     let source
