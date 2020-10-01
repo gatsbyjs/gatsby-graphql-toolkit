@@ -1,6 +1,6 @@
 import * as path from "path"
 import * as fs from "fs-extra"
-import { Source } from "graphql"
+import { DocumentNode, Source, print } from "graphql"
 import { GraphQLSource, RemoteTypeName } from "../types"
 import {
   IDefaultFragmentsConfig,
@@ -32,4 +32,17 @@ export async function readOrGenerateDefaultFragments(
   }
 
   return result
+}
+
+export async function writeCompiledQueries(
+  outputDir: string,
+  compiledQueries: Map<RemoteTypeName, DocumentNode>
+) {
+  await fs.ensureDir(outputDir)
+  for (const [remoteTypeName, document] of compiledQueries) {
+    await fs.writeFile(
+      outputDir + `/${remoteTypeName}.graphql`,
+      print(document)
+    )
+  }
 }

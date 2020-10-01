@@ -53,6 +53,7 @@ See this PR for progress: https://github.com/gatsbyjs/gatsby/pull/25468
     - [readOrGenerateDefaultFragments](#readorgeneratedefaultfragments)
     - [compileNodeQueries](#compilenodequeries)
     - [compileGatsbyFragments](#compilegatsbyfragments)
+    - [writeCompiledQueries](#writecompiledqueries)
   - [Schema customization tools](#schema-customization-tools)
     - [createSchemaCustomization](#createschemacustomization)
   - [Source nodes tools](#source-nodes-tools)
@@ -1097,6 +1098,26 @@ export function compileGatsbyFragments(
   args: ICompileGatsbyFragmentsArgs
 ): DocumentNode
 ```
+
+## writeCompiledQueries
+
+Use it to dump compiled queries to disk for debugging. Example:
+
+```js
+  // Step4. Compile sourcing queries
+  const documents = compileNodeQueries({
+    schema,
+    gatsbyNodeTypes,
+    customFragments: fragments,
+  })
+
+  // Write compiled queries for debugging
+  await writeCompiledQueries(`./sourcing-queries`, documents)
+```
+
+For each node type it will create a `Type.graphql` file with full GraphQL queries
+for this node type. Run those queries against your remote GraphQL endpoint manually
+for troubleshooting.
 
 ### Schema customization tools
 
