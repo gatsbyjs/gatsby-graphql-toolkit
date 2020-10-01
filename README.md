@@ -42,6 +42,7 @@ See this PR for progress: https://github.com/gatsbyjs/gatsby/pull/25468
   - [Gatsby field aliases](#gatsby-field-aliases)
   - [Type name transformer](#type-name-transformer)
   - [Custom Pagination Adapter](#custom-pagination-adapter)
+- [Troubleshooting](#troubleshooting)
 - [Tools Reference](#tools-reference)
   - [Configuration Tools](#configuration-tools)
     - [createDefaultQueryExecutor](#createdefaultqueryexecutor)
@@ -805,6 +806,47 @@ const config = {
 }
 ```
 
+## Troubleshooting
+
+Whenever you face an issue, it usually falls into one of the 4 categories:
+
+1. Configuration problem
+2. Query compilation problem
+3. Schema customization problem
+4. Sourcing problem
+
+Both: schema customization and sourcing rely heavily on your custom fragments and
+compiled queries to work. And obviously everything depends on a correct configuration.
+
+So the first step is to make sure the issue is not about configuration or query compilation.
+ 
+1. Check your custom fragments against **remote** GraphQL API (not Gatsby GraphQL).
+   You can do this in GraphiQL, Altair or any other GraphQL UI tool.
+   
+   If there are syntax errors in UI for your fragments - fix them by editing fragments on disk manually.
+
+   If you are using `generateDefaultFragments` utility, replace it with [`readOrGenerateDefaultFragments`](#readorgeneratedefaultfragments)
+   to dump generated fragments to disk for investigation.
+
+   Note: if generated fragments contain an error - fill an issue in this repo.
+
+2. Write compiled queries to disk using [`writeCompiledQueries`](#writecompiledqueries).
+   Then run those queries against your **remote** GraphQL API (maybe only those related to your problem).
+   
+   Note: if compiled queries contain syntax errors - fill an issue in this repo.
+
+3. If both custom fragments and compiled queries work as expected - then the issue is probably
+   somewhere in the schema customization or sourcing.
+
+4. Try disabling `createSchemaCustomization`, e.g. just comment out `createSchemaCustomization` call
+   and only run `sourceNodes`. This way you can investigate `raw` data in Gatsby GraphiQL.
+
+   It must match exactly the result of the compiled query execution.
+
+5. If sourcing worked as expected - then the issue is probably somewhere in the schema customization
+   logic. In this case don't hesitate to fill an issue in this repo.
+
+
 ## Tools Reference
 
 ### Configuration Tools
@@ -1181,11 +1223,6 @@ interface ISourceChanges {
   nodeEvents: NodeEvent[]
 }
 ```
-
-## TODOC: Troubleshooting tips
-
-- [ ] Write compiled queries to disk ([example](https://github.com/vladar/gatsby-graphql-toolkit-examples/blob/master/graph-cms/gatsby-node.js#L62))
-- [ ] Disable schema customization to see raw nodes in GraphiQL
 
 ## TODO:
 
