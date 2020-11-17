@@ -13,6 +13,8 @@ export {
   LimitOffset,
   RelayForward,
   NoPagination,
+  IPageInfo,
+  IPaginationAdapter,
 } from "./config/pagination-adapters"
 
 export {
