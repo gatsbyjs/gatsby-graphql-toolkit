@@ -1243,17 +1243,17 @@ interface ISourceChanges {
 - [ ] Tool: compile Gatsby fragments from remote GraphQL API fragments
 - [ ] Tool: auto-configuration for Relay-compliant GraphQL schemas
 
-[1]: https://www.gatsbyjs.org/tutorial/source-plugin-tutorial/
-[2]: https://www.gatsbyjs.org/packages/gatsby-source-graphql/
-[3]: https://www.gatsbyjs.org/docs/creating-a-source-plugin/#sourcing-data-and-creating-nodes
+[1]: https://www.gatsbyjs.com/tutorial/source-plugin-tutorial/
+[2]: https://www.gatsbyjs.com/packages/gatsby-source-graphql/
+[3]: https://www.gatsbyjs.com/docs/creating-a-source-plugin/#sourcing-data-and-creating-nodes
 [4]: https://github.com/gatsbyjs/gatsby/issues/15906
 [5]: https://www.gatsbyjs.com/preview/
 [6]: https://www.gatsbyjs.com/docs/incremental-builds/
 [7]: https://graphql.org/learn/introspection/
-[8]: https://www.gatsbyjs.org/docs/schema-customization/
+[8]: https://www.gatsbyjs.com/docs/schema-customization/
 [9]: https://graphql.org/learn/pagination/
 [10]: https://graphql.org/learn/queries/#meta-fields
-[11]: https://www.gatsbyjs.org/docs/actions/#createNode
+[11]: https://www.gatsbyjs.com/docs/actions/#createNode
 [12]: https://relay.dev/graphql/connections.htm
 [13]: https://github.com/sindresorhus/p-queue
 [14]: https://github.com/node-fetch/node-fetch
