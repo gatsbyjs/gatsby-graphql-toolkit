@@ -1,3 +1,4 @@
+import { inspect } from "util"
 import PQueue, { Options as PQueueOptions } from "p-queue"
 import fetch, { RequestInit as FetchOptions } from "node-fetch"
 import { IQueryExecutionArgs, IQueryExecutor } from "../types"
@@ -9,14 +10,31 @@ export function createNetworkQueryExecutor(
   return async function execute(args) {
     const { query, variables, operationName } = args
 
-    return fetch(uri, {
+    const response = await fetch(uri, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ query, variables, operationName }),
       ...fetchOptions,
-    }).then(res => res.json())
+      headers: {
+        "Content-Type": "application/json",
+        ...fetchOptions.headers,
+      },
+    })
+    if (!response.ok) {
+      console.warn(
+        `Query ${operationName} returned status ${response.status}.\n` +
+          `Query variables: ${inspect(variables)}`
+      )
+    }
+    const result = await response.json()
+
+    if (result.data && result.errors?.length) {
+      console.warn(
+        `Query ${operationName} returned warnings:\n` +
+          `${inspect(result.errors)}\n` +
+          `Query variables: ${inspect(variables)}`
+      )
+    }
+    return result
   }
 }
 
