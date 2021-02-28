@@ -1,6 +1,4 @@
-import chalk from "chalk"
-
-function formatLogMessage(input, { verbose = false } = {}): string {
+function formatLogMessage(input): string {
   let message
   if (typeof input === `string`) {
     message = input
@@ -8,9 +6,7 @@ function formatLogMessage(input, { verbose = false } = {}): string {
     message = input[0]
   }
 
-  return verbose
-    ? `${chalk.white.bgBlue(` gatsby-graphql-toolkit `)} ${message}`
-    : `[gatsby-graphql-toolkit] ${message}`
+  return message
 }
 
 export { formatLogMessage }
