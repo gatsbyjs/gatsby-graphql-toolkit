@@ -5,10 +5,6 @@ The toolkit designed to simplify data sourcing from the remote GraphQL API into 
 Note: this is **not** a source plugin by itself, but it helps [writing custom GraphQL source plugins][1]
 by providing a set of convenience tools and conventions.
 
-The toolkit is in the late beta stage. The API won't change significantly,
-and possible breaking changes will be documented in the [changelog](./CHANGELOG.md)
-or separate migration guides.
-
 ## Installation
 
 ```shell
