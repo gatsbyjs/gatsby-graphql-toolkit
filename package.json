@@ -1,6 +1,6 @@
 {
   "name": "gatsby-graphql-source-toolkit",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A toolkit designed to simplify data sourcing from a remote GraphQL API into Gatsby.",
   "author": "Vladimir Razuvaev <vladimir@gatsbyjs.com>",
   "license": "MIT",
