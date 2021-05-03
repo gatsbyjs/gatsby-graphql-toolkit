@@ -1,3 +1,9 @@
+# v2.0.0
+
+## Feat: Gatsby v3 compatibility
+
+**No breaking changes**. Just a version bump and minor tweaks required for `gatsby@^3.0.0` compatibility.
+
 # v1.0.0
 
 ## Feat: writeCompiledQueries utility

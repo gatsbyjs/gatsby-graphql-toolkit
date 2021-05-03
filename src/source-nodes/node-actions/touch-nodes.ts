@@ -23,7 +23,7 @@ export function touchNodesByType(
 
   for (const node of nodes) {
     if (!excludeIds.has(node.id)) {
-      actions.touchNode({ nodeId: node.id })
+      actions.touchNode(node)
     }
   }
 }

@@ -1,5 +1,5 @@
 import { Node, NodePluginArgs } from "gatsby"
-import { ComposeFieldConfig } from "graphql-compose"
+import { ObjectTypeComposerFieldConfigDefinition } from "graphql-compose"
 import {
   DocumentNode,
   ExecutionResult,
@@ -177,5 +177,7 @@ interface IGatsbyFieldTransformArgs {
 
 export interface IGatsbyFieldTransform {
   test: (args: IGatsbyFieldTransformArgs) => boolean
-  transform: (args: IGatsbyFieldTransformArgs) => ComposeFieldConfig<any, any>
+  transform: (
+    args: IGatsbyFieldTransformArgs
+  ) => ObjectTypeComposerFieldConfigDefinition<any, any>
 }

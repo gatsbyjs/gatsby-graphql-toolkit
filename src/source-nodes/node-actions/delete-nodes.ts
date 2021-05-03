@@ -15,7 +15,7 @@ export function deleteNodes(
     )
     const node = context.gatsbyApi.getNode(id)
     if (node) {
-      context.gatsbyApi.actions.deleteNode({ node })
+      context.gatsbyApi.actions.deleteNode(node)
     }
     // TODO: find all nodes referencing deleted nodes and update/refetch all of them?
     //  Alternatively - soft-delete:
