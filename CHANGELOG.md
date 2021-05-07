@@ -1,12 +1,19 @@
+## v2.0.1
+
+### Fix: return inspect node for error messages rather than node id directly
+
+Fixes invalid error message "id `[object Object]` is nullish". Now displays actual object contents.
+
+
 # v2.0.0
 
-## Feat: Gatsby v3 compatibility
+### Feat: Gatsby v3 compatibility
 
 **No breaking changes**. Just a version bump and minor tweaks required for `gatsby@^3.0.0` compatibility.
 
 # v1.0.0
 
-## Feat: writeCompiledQueries utility
+### Feat: writeCompiledQueries utility
 
 New debugging utility allowing you to dump compiled queries to disk. Example usage:
 
@@ -26,12 +33,12 @@ await writeCompiledQueries(`./sourcing-queries`, documents)
 
 For each node type it will create a Type.graphql file with full GraphQL queries for this node type. Run those queries against your remote GraphQL endpoint manually for troubleshooting.
 
-## Feat: display warnings in the default query executor
+### Feat: display warnings in the default query executor
 
 Now whenever GraphQL response contains non-fatal errors, they will be displayed
 in the console (but sourcing process will continue).
 
-## Feat: allow passing headers to default query executor
+### Feat: allow passing headers to default query executor
 
 The following now works as expected:
 
@@ -43,18 +50,18 @@ const execute = createDefaultQueryExecutor(`https://www.example.com/graphql`, {
 })
 ```
 
-## Change: removed `gatsby-graphql-toolkit` prefix in CLI messages
+### Change: removed `gatsby-graphql-toolkit` prefix in CLI messages
 
-## Fix: fixed invalid referencing of non-node types in interface fields
+### Fix: fixed invalid referencing of non-node types in interface fields
 
 # v0.6.0
 
-## Feat: compile gatsby fragments
+### Feat: compile gatsby fragments
 
 Added new experimental tool `compileGatsbyFragments`. Use it to compile custom source fragments to
 Gatsby fragments. See [README.md](./README.md#compilegatsbyfragments) for details.
 
-## Fixes
+### Fixes
 
 - be smarter when adding a `__typename` field (see [#11](https://github.com/gatsbyjs/gatsby-graphql-toolkit/issues/11))
 - support variables within input objects (see [#13](https://github.com/gatsbyjs/gatsby-graphql-toolkit/issues/13))
@@ -62,7 +69,7 @@ Gatsby fragments. See [README.md](./README.md#compilegatsbyfragments) for detail
 
 # v0.5.0
 
-## Feat: nested fragment spreads
+### Feat: nested fragment spreads
 
 Now you can do things like this:
 
@@ -81,7 +88,7 @@ Before v0.5.0 this set of fragments would have thrown an error because only
 fragment on Node types were supported. Now nested fragment spreads on non-node types
 are supported as well.
 
-## Fix: correctly add remoteTypeName to list fields
+### Fix: correctly add remoteTypeName to list fields
 
 Before this release the toolkit was incorrect fragments for the following schema:
 
@@ -120,7 +127,7 @@ when Gatsby runs queries.
 
 # v0.4.0
 
-## Schema customization: changed the logic of collecting interface fields
+### Schema customization: changed the logic of collecting interface fields
 
 Say your remote schema has those types:
 
@@ -152,7 +159,7 @@ fragment IfaceFragment on Iface {
 
 # v0.3.0
 
-## Use ID fragments instead of `remoteIdFields` in the config
+### Use ID fragments instead of `remoteIdFields` in the config
 
 Update your node type configs like this to account for this change:
 
@@ -190,7 +197,7 @@ This has several advantages:
    - Contentful puts id in nested object `sys`;
    - Drupal has a composite id: `{ entityId, entityLanguage { id } }`
 
-## generateDefaultFragments: added `fields` to the list of aliased fields
+### generateDefaultFragments: added `fields` to the list of aliased fields
 
 Diff of function output for various internal Gatsby fields:
 
