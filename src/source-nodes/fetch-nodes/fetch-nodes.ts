@@ -1,4 +1,5 @@
 import { print } from "graphql"
+import { inspect } from "util"
 import { IRemoteId, IRemoteNode, ISourcingContext } from "../../types"
 import {
   findNodeOperationName,
@@ -19,7 +20,7 @@ export async function* fetchNonNullishNodesById(
   for await (const node of fetchNodesById(context, remoteTypeName, ids)) {
     if (!node) {
       throw new Error(
-        `Node "${remoteTypeName}" with id "${ids[index]}" is nullish.`
+        `Node "${remoteTypeName}" with id "${inspect(ids[index])}" is nullish.`
       )
     }
     index++
