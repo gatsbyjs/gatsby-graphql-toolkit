@@ -521,7 +521,7 @@ const gatsbyNodeTypes = [
         posts(limit: $limit, offset: $offset) { ..._PostId_ }
       }
 +     query NODE_POST {
-+       post(id: $id) } { ..._PostId_ }
++       post(id: $id) { ..._PostId_ }
 +     }
       fragment _PostId_ on Post { __typename id }
     `,
