@@ -9,24 +9,28 @@ export function removeUnusedFragments(): Visitor<ASTKindToNode> {
   const definitionSpreads: Map<string, Array<FragmentName>> = new Map()
 
   return {
-    enter: {
-      FragmentSpread: node => {
+    FragmentSpread: {
+      enter: node => {
         currentSpreads.push(node.name.value)
       },
     },
-    leave: {
-      OperationDefinition: node => {
+    OperationDefinition: {
+      leave: node => {
         if (!node.name?.value) {
           throw new Error("Every query must have a name")
         }
         definitionSpreads.set(node.name.value, currentSpreads)
         currentSpreads = []
       },
-      FragmentDefinition: node => {
+    },
+    FragmentDefinition: {
+      leave: node => {
         definitionSpreads.set(node.name.value, currentSpreads)
         currentSpreads = []
       },
-      Document: node => {
+    },
+    Document: {
+      leave: node => {
         const operations = node.definitions.filter(isOperation)
         const operationNames = operations.map(op => op.name?.value)
 
