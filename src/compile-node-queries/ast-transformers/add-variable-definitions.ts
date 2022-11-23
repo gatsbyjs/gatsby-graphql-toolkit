@@ -1,12 +1,12 @@
 import {
-  Visitor,
-  ASTKindToNode,
+  ASTVisitor,
   OperationDefinitionNode,
   VariableDefinitionNode,
   TypeInfo,
   GraphQLInputType,
   DocumentNode,
   parseType,
+  Kind,
 } from "graphql"
 import * as GraphQLAST from "../../utils/ast-nodes"
 
@@ -23,7 +23,7 @@ interface DefinitionInfo {
 
 export function addVariableDefinitions({
   typeInfo,
-}: IAddVariableDefinitionsArgs): Visitor<ASTKindToNode> {
+}: IAddVariableDefinitionsArgs): ASTVisitor {
   const fragmentInfo = new Map<string, DefinitionInfo>()
   const operationInfo = new Map<string, DefinitionInfo>()
 
@@ -91,9 +91,9 @@ function ensureVariableDefinitions(
   const variableDefinitions: VariableDefinitionNode[] = []
   for (const [name, inputType] of variables) {
     variableDefinitions.push({
-      kind: "VariableDefinition",
+      kind: Kind.VARIABLE_DEFINITION,
       variable: {
-        kind: "Variable",
+        kind: Kind.VARIABLE,
         name: GraphQLAST.name(name),
       },
       type: parseType(inputType.toString()),

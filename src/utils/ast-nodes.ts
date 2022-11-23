@@ -14,11 +14,12 @@ import {
   SelectionSetNode,
   StringValueNode,
   ValueNode,
+  Kind,
 } from "graphql"
 
 export function document(definitions: DefinitionNode[]): DocumentNode {
   return {
-    kind: "Document",
+    kind: Kind.DOCUMENT,
     definitions,
   }
 }
@@ -29,7 +30,7 @@ export function fragmentDefinition(
   selections: SelectionNode[]
 ): FragmentDefinitionNode {
   return {
-    kind: "FragmentDefinition",
+    kind: Kind.FRAGMENT_DEFINITION,
     name: name(fragmentName ?? typeName),
     typeCondition: namedType(typeName),
     selectionSet: selectionSet(selections),
@@ -41,7 +42,7 @@ export function inlineFragment(
   selections: readonly SelectionNode[]
 ): InlineFragmentNode {
   return {
-    kind: "InlineFragment",
+    kind: Kind.INLINE_FRAGMENT,
     typeCondition: namedType(typeCondition),
     selectionSet: selectionSet(selections),
   }
@@ -51,7 +52,7 @@ export function selectionSet(
   selections: readonly SelectionNode[] = []
 ): SelectionSetNode {
   return {
-    kind: "SelectionSet",
+    kind: Kind.SELECTION_SET,
     selections: selections,
   }
 }
@@ -64,7 +65,7 @@ export function field(
   directives?: DirectiveNode[]
 ): FieldNode {
   return {
-    kind: "Field",
+    kind: Kind.FIELD,
     name: name(fieldName),
     alias: alias ? name(alias) : undefined,
     arguments: args,
@@ -75,7 +76,7 @@ export function field(
 
 export function arg(argName: string, value: ValueNode): ArgumentNode {
   return {
-    kind: "Argument",
+    kind: Kind.ARGUMENT,
     name: name(argName),
     value,
   }
@@ -83,21 +84,21 @@ export function arg(argName: string, value: ValueNode): ArgumentNode {
 
 export function name(value: string): NameNode {
   return {
-    kind: "Name",
+    kind: Kind.NAME,
     value: value,
   }
 }
 
 export function namedType(typeName: string): NamedTypeNode {
   return {
-    kind: "NamedType",
+    kind: Kind.NAMED_TYPE,
     name: name(typeName),
   }
 }
 
 export function fragmentSpread(fragmentName: string): FragmentSpreadNode {
   return {
-    kind: "FragmentSpread",
+    kind: Kind.FRAGMENT_SPREAD,
     name: name(fragmentName),
   }
 }
@@ -107,7 +108,7 @@ export function directive(
   args?: ArgumentNode[]
 ): DirectiveNode {
   return {
-    kind: "Directive",
+    kind: Kind.DIRECTIVE,
     name: name(directiveName),
     arguments: args,
   }
@@ -119,14 +120,14 @@ export function skipDirective(condition: boolean = true) {
 
 export function boolValue(value: boolean): BooleanValueNode {
   return {
-    kind: "BooleanValue",
+    kind: Kind.BOOLEAN,
     value,
   }
 }
 
 export function stringValue(value: string): StringValueNode {
   return {
-    kind: "StringValue",
+    kind: Kind.STRING,
     value,
   }
 }

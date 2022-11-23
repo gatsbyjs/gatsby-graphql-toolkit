@@ -1,8 +1,7 @@
 import {
   TypeInfo,
   isInterfaceType,
-  Visitor,
-  ASTKindToNode,
+  ASTVisitor,
   getNamedType,
   GraphQLSchema,
   GraphQLInterfaceType,
@@ -10,6 +9,7 @@ import {
   SelectionNode,
   GraphQLObjectType,
   FragmentDefinitionNode,
+  Kind,
 } from "graphql"
 import { FragmentMap } from "../../types"
 import * as GraphQLAST from "../../utils/ast-nodes"
@@ -42,7 +42,7 @@ interface ITransformArgs {
  */
 export function replaceNodeSelectionWithReference(
   args: ITransformArgs
-): Visitor<ASTKindToNode> {
+): ASTVisitor {
   return {
     Field: node => {
       const type = args.typeInfo.getType()
@@ -96,7 +96,7 @@ function transformInterfaceField(
   return {
     ...node,
     selectionSet: {
-      kind: "SelectionSet",
+      kind: Kind.SELECTION_SET,
       selections: [GraphQLAST.field(`__typename`), ...selections],
     },
   }

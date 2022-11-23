@@ -1,7 +1,6 @@
 import {
   TypeInfo,
-  Visitor,
-  ASTKindToNode,
+  ASTVisitor,
   SelectionSetNode,
   isCompositeType,
   getNamedType,
@@ -30,7 +29,7 @@ interface IAddTypeNameArgs {
  */
 export function addRemoteTypeNameField({
   typeInfo,
-}: IAddTypeNameArgs): Visitor<ASTKindToNode> {
+}: IAddTypeNameArgs): ASTVisitor {
   return {
     SelectionSet: (node, _, parent) => {
       const type = typeInfo.getType()

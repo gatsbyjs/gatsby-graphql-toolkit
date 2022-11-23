@@ -6,6 +6,7 @@ import {
   TypeInfo,
   visit,
   visitWithTypeInfo,
+  Kind,
 } from "graphql"
 import { IGatsbyNodeConfig, RemoteTypeName } from "../../types"
 
@@ -57,7 +58,7 @@ export function buildTypeUsagesMap(
   args: IBuildTypeUsagesMapArgs
 ): TypeUsagesMap {
   const fullDocument: DocumentNode = {
-    kind: "Document",
+    kind: Kind.DOCUMENT,
     definitions: args.fragments,
   }
 

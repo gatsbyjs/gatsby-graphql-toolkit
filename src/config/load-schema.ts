@@ -22,7 +22,7 @@ export async function introspectSchema(
     throw new Error(`Schema introspection failed. First error: ${error}`)
   }
 
-  return introspectionResult.data as IntrospectionQuery
+  return introspectionResult.data as unknown as IntrospectionQuery
 }
 
 /**

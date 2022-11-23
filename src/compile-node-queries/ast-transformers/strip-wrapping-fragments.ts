@@ -1,11 +1,11 @@
-import { SelectionSetNode, Visitor, ASTKindToNode } from "graphql"
+import { SelectionSetNode, ASTVisitor } from "graphql"
 
 /**
  * Strip unnecessary wrapping (just a prettify)
  * i.e. { ...on InterfaceType { ...on ObjectType1 ...on ObjectType2 } }
  *   -> { ...on ObjectType1 ...on ObjectType2 }
  */
-export function stripWrappingFragments(): Visitor<ASTKindToNode> {
+export function stripWrappingFragments(): ASTVisitor {
   return {
     SelectionSet: {
       leave: (node: SelectionSetNode) => {

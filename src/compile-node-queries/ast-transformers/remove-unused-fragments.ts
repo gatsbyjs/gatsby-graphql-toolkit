@@ -1,10 +1,10 @@
-import { ASTKindToNode, Visitor } from "graphql"
+import { ASTVisitor } from "graphql"
 import * as GraphQLAST from "../../utils/ast-nodes"
 import { isFragment, isOperation } from "../../utils/ast-predicates"
 
 type FragmentName = string
 
-export function removeUnusedFragments(): Visitor<ASTKindToNode> {
+export function removeUnusedFragments(): ASTVisitor {
   let currentSpreads: Array<FragmentName> = []
   const definitionSpreads: Map<string, Array<FragmentName>> = new Map()
 
