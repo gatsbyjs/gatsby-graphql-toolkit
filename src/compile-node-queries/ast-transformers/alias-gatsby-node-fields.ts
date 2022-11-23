@@ -1,8 +1,7 @@
 import {
   FieldNode,
-  Visitor,
+  ASTVisitor,
   TypeInfo,
-  ASTKindToNode,
   GraphQLSchema,
   GraphQLCompositeType,
   isObjectType,
@@ -24,7 +23,7 @@ interface IAliasGatsbyNodeFieldsArgs {
 
 export function aliasGatsbyNodeFields(
   args: IAliasGatsbyNodeFieldsArgs
-): Visitor<ASTKindToNode> {
+): ASTVisitor {
   return {
     Field: (node: FieldNode) => {
       if (isTypeName(node) || isNodeType(args.typeInfo.getParentType(), args)) {

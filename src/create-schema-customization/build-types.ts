@@ -75,7 +75,7 @@ function interfaceType(
       if (remoteTypeName) {
         return typeNameTransform.toGatsbyTypeName(remoteTypeName)
       }
-      return null
+      return undefined
     },
     extensions: { infer: false },
   }
