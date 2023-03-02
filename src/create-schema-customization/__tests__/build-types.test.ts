@@ -203,4 +203,30 @@ describe(`Build objectType`, () => {
       })
     })
   })
+
+  it(`creates correct types for lists`, () => {
+    const gatsbyNodeDefs = createGatsbyNodeDefinitions([
+      {
+        remoteTypeName: `Category`,
+        queries: `{
+          categories {
+            optionalListOfOptionalType
+            optionalListOfRequiredType
+            requiredListOfOptionalType
+            requiredListOfRequiredType
+          }
+        }`,
+      },
+    ])
+    const context = createTestContext({ gatsbyNodeDefs })
+    const categoryDef = buildTypeDefinition(context, `Category`)
+    const categoryFields = (categoryDef as GatsbyGraphQLObjectType).config.fields
+
+    expect(categoryFields).toMatchObject({
+      optionalListOfOptionalType: { type: `[TestApiCategory]` },
+      optionalListOfRequiredType: { type: `[TestApiCategory!]` },
+      requiredListOfOptionalType: { type: `[TestApiCategory]!` },
+      requiredListOfRequiredType: { type: `[TestApiCategory!]!` },
+    })
+  })
 })
