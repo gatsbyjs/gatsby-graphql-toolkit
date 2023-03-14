@@ -169,17 +169,23 @@ function toGatsbyType(
  * i.e. wrapType(`JSON`, myRemoteListOfJSONType) => `[JSON]`
  */
 function wrap(typeName: string, remoteType: GraphQLType): string {
-  let wrappedType = typeName
+  const wrappingTypes: GraphQLType[] = []
   let currentRemoteType = remoteType
   while (isWrappingType(currentRemoteType)) {
-    if (isListType(currentRemoteType)) {
-      wrappedType = `[${wrappedType}]`
-    }
-    if (isNonNullType(currentRemoteType)) {
-      wrappedType = `${wrappedType}!`
-    }
+    wrappingTypes.push(currentRemoteType)
     currentRemoteType = currentRemoteType.ofType
   }
+
+  let wrappedType = typeName
+  for (const wrappingType of wrappingTypes.reverse()) {
+    if (isNonNullType(wrappingType)) {
+      wrappedType = `${wrappedType}!`
+    }
+    if (isListType(wrappingType)) {
+      wrappedType = `[${wrappedType}]`
+    }
+  }
+
   return wrappedType
 }
 

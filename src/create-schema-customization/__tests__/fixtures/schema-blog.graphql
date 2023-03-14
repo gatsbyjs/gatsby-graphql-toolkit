@@ -37,6 +37,11 @@ type Category implements Named {
   id: ID!
   entries: [Entry]
   displayName: String!
+
+  optionalListOfOptionalType: [Category]
+  optionalListOfRequiredType: [Category!]
+  requiredListOfOptionalType: [Category]!
+  requiredListOfRequiredType: [Category!]!
 }
 
 type Guest implements Entry & Named {
